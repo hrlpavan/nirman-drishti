@@ -3,20 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nirman-Drishti | Autonomous Public Works Forensic Auditor</title>
+  <title>Nirman-Drishti (निर्माण-दृष्टि) | Autonomous Public Works Forensic Auditor</title>
   <link rel="icon" type="image/png" href="assets/emblem_of_india.png">
   
-  <!-- Tailwind CSS & Fonts -->
+  <!-- Inter & JetBrains Mono Fonts for Executive GovTech Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS & Font Awesome Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
           colors: {
-            govblue: {
+            gov: {
+              50: '#f0f6ff',
+              100: '#e0edfe',
+              600: '#1d4ed8',
               800: '#0f2a4a',
-              900: '#0a1d33',
+              900: '#08172b',
+              950: '#040b15',
             }
           }
         }
@@ -25,232 +38,309 @@
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Leaflet CSS & JS for Interactive Map -->
+  <!-- Leaflet GIS Map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- jsPDF for direct PDF certificate generation -->
+  <!-- jsPDF for Signed Certificate Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
+    body {
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
+    }
     .dark-map .leaflet-tile-pane {
       filter: invert(90%) hue-rotate(180deg) brightness(85%) contrast(90%);
     }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+    .tricolor-bar {
+      height: 3px;
+      background: linear-gradient(90deg, #ff9933 33.3%, #ffffff 33.3%, #ffffff 66.6%, #138808 66.6%);
+    }
     .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background-color: rgba(156, 163, 175, 0.5);
+      background-color: rgba(148, 163, 184, 0.4);
       border-radius: 9999px;
     }
   </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
+<body class="bg-[#f8fafc] dark:bg-[#070b14] text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
 
-  <div class="flex flex-col md:flex-row min-h-screen">
+  <!-- TOP GOVTECH TRICOLOR IDENTITY BAR -->
+  <div class="tricolor-bar w-full"></div>
 
-    <!-- SIDEBAR -->
-    <aside class="w-full md:w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between shadow-sm">
-      <div>
-        <div class="flex items-center space-x-3 mb-6">
-          <img src="assets/emblem_of_india.png" alt="State Emblem of India" class="h-12 w-auto object-contain">
-          <div>
-            <h1 class="text-xl font-bold text-slate-900 dark:text-white leading-tight">Nirman-Drishti</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Govt. of India DPI Forensic Auditor</p>
-          </div>
-        </div>
-
-        <div class="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-lg border border-blue-100 dark:border-blue-900/40 mb-6">
-          <div class="flex items-center space-x-2 text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1">
-            <i class="fa-solid fa-bolt"></i>
-            <span>Google Cloud & Gemini 2.0</span>
-          </div>
-          <p class="text-xs text-slate-600 dark:text-slate-300">Multimodal vision, geospatial geofencing & BOQ audit engine active.</p>
-        </div>
-
-        <!-- THEME SELECTOR -->
-        <div class="mb-6">
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Display Theme</label>
-          <div class="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-            <button id="themeLightBtn" onclick="setTheme('light')" class="py-1.5 px-3 rounded-md text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all">
-              <i class="fa-regular fa-sun"></i>
-              <span>Light</span>
-            </button>
-            <button id="themeDarkBtn" onclick="setTheme('dark')" class="py-1.5 px-3 rounded-md text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all">
-              <i class="fa-regular fa-moon"></i>
-              <span>Dark</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- CLAIM SELECTOR -->
-        <div class="mb-6">
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Select Claim to Audit</label>
-          <select id="claimSelect" onchange="loadClaim(this.value)" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg py-2.5 px-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
-            <option value="CLM-001">🚨 CLM-001: PMGSY Road (Fraud Case)</option>
-            <option value="CLM-002">✅ CLM-002: JJM Solar Pump (Approved)</option>
-            <option value="CLM-003">⚠️ CLM-003: MPLADS Building (Rate Hold)</option>
-          </select>
-        </div>
-
-        <!-- QUICK LINKS -->
-        <div class="space-y-2">
-          <a href="https://github.com/hrlpavan/nirman-drishti" target="_blank" class="flex items-center justify-between p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium transition-all">
-            <span class="flex items-center space-x-2">
-              <i class="fa-brands fa-github text-sm"></i>
-              <span>GitHub Repository</span>
-            </span>
-            <i class="fa-solid fa-arrow-up-right-from-square text-slate-400"></i>
-          </a>
-          <a href="assets/Nirman_Drishti_Presentation_Deck.pdf" target="_blank" class="flex items-center justify-between p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium transition-all">
-            <span class="flex items-center space-x-2">
-              <i class="fa-regular fa-file-pdf text-sm text-red-500"></i>
-              <span>Pitch Deck (PDF)</span>
-            </span>
-            <i class="fa-solid fa-download text-slate-400"></i>
-          </a>
-        </div>
-      </div>
-
-      <div class="pt-6 border-t border-slate-200 dark:border-slate-800 text-center">
-        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Built for <strong>Code for Communities 2.0</strong></p>
-        <p class="text-[10px] text-slate-400 mt-0.5">Google Cloud &bull; GDG &bull; Hack2Skill</p>
-      </div>
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <main class="flex-1 flex flex-col p-6 md:p-8 custom-scrollbar overflow-y-auto">
+  <!-- HEADER NAVIGATION -->
+  <header class="bg-white dark:bg-[#0d1424] border-b border-slate-200/80 dark:border-slate-800/80 sticky top-0 z-30 shadow-xs backdrop-blur-md bg-white/95 dark:bg-[#0d1424]/95">
+    <div class="max-w-[1720px] mx-auto px-4 lg:px-8 py-3 flex items-center justify-between">
       
-      <!-- TOP BANNER -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-200 dark:border-slate-800 mb-6 gap-4">
-        <div>
-          <div class="flex items-center space-x-2 mb-1">
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">Track 1: Digital Public Infrastructure & Governance</span>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">Live Production Engine</span>
+      <!-- Brand & Emblem -->
+      <div class="flex items-center space-x-4">
+        <img src="assets/emblem_of_india.png" alt="Lion Capital of Ashoka" class="h-10 w-auto object-contain">
+        <div class="border-l border-slate-200 dark:border-slate-800 pl-4">
+          <div class="flex items-center space-x-2">
+            <h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-none">NIRMAN-DRISHTI</h1>
+            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 font-mono">(निर्माण-दृष्टि)</span>
+            <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+              DPI Core v2.4
+            </span>
           </div>
-          <h2 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">🏛️ Nirman-Drishti (निर्माण-दृष्टि)</h2>
-          <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Autonomous Multimodal Forensic Audit Engine for Public Infrastructure & Constituency Works (MPLADS / PMGSY / JJM)</p>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium tracking-tight mt-0.5">
+            Ministry of Rural Development &bull; Directorate of Digital Public Infrastructure &amp; Vigilance
+          </p>
         </div>
-        <div class="flex items-center space-x-3">
-          <button onclick="downloadCertificate()" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-semibold py-2 px-4 rounded-lg shadow-sm transition-all">
-            <i class="fa-solid fa-file-shield"></i>
-            <span>Download Signed Certificate (PDF)</span>
+      </div>
+
+      <!-- Action Tools & Theme Switcher -->
+      <div class="flex items-center space-x-3">
+        <!-- Live AI Telemetry Badge -->
+        <div class="hidden md:flex items-center space-x-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 px-3 py-1.5 rounded-full text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span class="font-mono text-[11px]">Gemini 2.0 Vision Online</span>
+        </div>
+
+        <!-- Light/Dark Toggle -->
+        <div class="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700/80">
+          <button id="themeLightBtn" onclick="setTheme('light')" title="Light Mode" class="px-2.5 py-1 rounded text-xs font-medium flex items-center space-x-1.5 transition-all">
+            <i class="fa-regular fa-sun text-amber-500"></i>
+            <span class="text-[11px]">Light</span>
+          </button>
+          <button id="themeDarkBtn" onclick="setTheme('dark')" title="Dark Mode" class="px-2.5 py-1 rounded text-xs font-medium flex items-center space-x-1.5 transition-all">
+            <i class="fa-regular fa-moon text-blue-400"></i>
+            <span class="text-[11px]">Dark</span>
           </button>
         </div>
+
+        <!-- Download Signed Certificate Button -->
+        <button onclick="downloadCertificate()" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs font-semibold py-2 px-3.5 rounded-lg shadow-xs transition-all">
+          <i class="fa-solid fa-file-shield text-xs"></i>
+          <span class="hidden sm:inline">Official Certificate</span>
+          <span class="sm:hidden">PDF</span>
+        </button>
+
+        <!-- GitHub Link -->
+        <a href="https://github.com/hrlpavan/nirman-drishti" target="_blank" title="View Source on GitHub" class="p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+          <i class="fa-brands fa-github text-lg"></i>
+        </a>
       </div>
 
-      <!-- KEY METRICS ROW -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sanctioned Budget</p>
-          <p id="metricBudget" class="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mt-1">₹48.0 Lakhs</p>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <div class="flex-1 max-w-[1720px] w-full mx-auto px-4 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT SIDEBAR: CASE SELECTOR & TELEMETRY (3 Cols) -->
+    <aside class="lg:col-span-3 space-y-5">
+      
+      <!-- AUDIT CASE SELECTION CARDS -->
+      <div class="bg-white dark:bg-[#0d1424] rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-4 shadow-2xs">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
+            <i class="fa-solid fa-list-check text-blue-500"></i>
+            <span>Active Tenders &amp; Claims</span>
+          </h2>
+          <span class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">3 Cases</span>
         </div>
-        <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tender ID</p>
-          <p id="metricTender" class="text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400 mt-1 truncate">PMGSY-2026-KA-491</p>
-        </div>
-        <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Claimed Milestone</p>
-          <p id="metricClaimed" class="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mt-1">₹48.00 Lakhs</p>
-        </div>
-        <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Questioned / Overcharge</p>
-          <p id="metricFlagged" class="text-xl md:text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">₹48.00 Lakhs</p>
+
+        <div class="space-y-2.5" id="claimCardsContainer">
+          <!-- Populated dynamically via JS for active states -->
         </div>
       </div>
 
-      <!-- TABS -->
-      <div class="flex space-x-2 border-b border-slate-200 dark:border-slate-800 mb-6">
-        <button id="tabBtn1" onclick="switchTab(1)" class="py-2.5 px-4 font-semibold text-sm border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 flex items-center space-x-2 transition-all">
-          <i class="fa-solid fa-magnifying-glass-chart"></i>
-          <span>Forensic Audit & Evidence</span>
-        </button>
-        <button id="tabBtn2" onclick="switchTab(2)" class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center space-x-2 transition-all">
-          <i class="fa-solid fa-map-location-dot"></i>
-          <span>Geospatial & Site Geofencing</span>
-        </button>
-        <button id="tabBtn3" onclick="switchTab(3)" class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center space-x-2 transition-all">
-          <i class="fa-solid fa-table-list"></i>
-          <span>BOQ Rate Reconciliation</span>
-        </button>
-      </div>
-
-      <!-- TAB 1 CONTENT -->
-      <div id="tabContent1" class="space-y-6">
+      <!-- DPI INTEGRATION STATUS -->
+      <div class="bg-white dark:bg-[#0d1424] rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-4 shadow-2xs text-xs space-y-3">
+        <h3 class="font-bold text-slate-900 dark:text-white uppercase text-[11px] tracking-wider text-slate-500 flex items-center space-x-1.5">
+          <i class="fa-solid fa-network-wired text-indigo-500"></i>
+          <span>DPI Protocol Status</span>
+        </h3>
         
-        <!-- VERDICT BANNER -->
-        <div id="verdictBanner" class="p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div>
-            <div class="flex items-center space-x-2">
-              <span id="verdictBadge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">REJECTED</span>
-              <span id="verdictTitle" class="text-lg font-bold">CRITICAL FRAUD ALERT — PAYMENT BLOCKED</span>
-            </div>
-            <p id="verdictSummary" class="text-xs md:text-sm mt-1.5 opacity-90 leading-relaxed"></p>
+        <div class="space-y-2 font-mono text-[11px]">
+          <div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+            <span class="text-slate-500">Treasury (PFMS):</span>
+            <span class="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center space-x-1">
+              <i class="fa-solid fa-check text-[10px]"></i><span>Escrow Ready</span>
+            </span>
           </div>
-          <div class="text-right">
-            <span class="text-xs font-medium opacity-75 uppercase">Risk Score</span>
-            <p id="verdictRisk" class="text-2xl md:text-3xl font-extrabold"></p>
+          <div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+            <span class="text-slate-500">DigiLocker Seal:</span>
+            <span class="font-semibold text-blue-600 dark:text-blue-400">SHA-256 Valid</span>
+          </div>
+          <div class="flex items-center justify-between py-1">
+            <span class="text-slate-500">State SoR Schedule:</span>
+            <span class="font-semibold text-slate-800 dark:text-slate-200">CPWD / PWD 2026</span>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <a href="assets/Nirman_Drishti_Presentation_Deck.pdf" target="_blank" class="w-full inline-flex items-center justify-center space-x-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold py-2 px-3 rounded-lg text-xs transition-all">
+            <i class="fa-regular fa-file-pdf text-red-500"></i>
+            <span>Download Pitch Deck (PDF)</span>
+          </a>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- RIGHT WORKSPACE: AUDIT COCKPIT (9 Cols) -->
+    <section class="lg:col-span-9 space-y-6">
+
+      <!-- TOP TELEMETRY METRICS ROW -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white dark:bg-[#0d1424] p-4 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
+          <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Sanctioned Tender Budget</span>
+          <p id="metricBudget" class="text-xl md:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mt-1 tabular-nums">--</p>
+          <span class="text-[10px] text-slate-400 mt-1 block">Full sanction ceiling</span>
+        </div>
+
+        <div class="bg-white dark:bg-[#0d1424] p-4 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
+          <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Tender Identifier</span>
+          <p id="metricTender" class="text-base md:text-lg font-bold font-mono tracking-tight text-blue-600 dark:text-blue-400 mt-1 truncate">--</p>
+          <span id="metricSchemeTag" class="text-[10px] text-slate-400 mt-1 block truncate">--</span>
+        </div>
+
+        <div class="bg-white dark:bg-[#0d1424] p-4 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
+          <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Claimed Milestone Value</span>
+          <p id="metricClaimed" class="text-xl md:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mt-1 tabular-nums">--</p>
+          <span class="text-[10px] text-slate-400 mt-1 block">Submitted by contractor</span>
+        </div>
+
+        <div class="bg-white dark:bg-[#0d1424] p-4 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
+          <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Questioned Overcharge</span>
+          <p id="metricFlagged" class="text-xl md:text-2xl font-bold tracking-tight text-rose-600 dark:text-rose-400 mt-1 tabular-nums">--</p>
+          <span id="metricSavingsTag" class="text-[10px] font-medium text-rose-500 dark:text-rose-400 mt-1 block">Potential public loss</span>
+        </div>
+      </div>
+
+      <!-- TABS NAVIGATION -->
+      <div class="bg-white dark:bg-[#0d1424] rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-1.5 shadow-2xs flex space-x-1.5">
+        <button id="tabBtn1" onclick="switchTab(1)" class="flex-1 py-2 px-3 rounded-lg font-semibold text-xs md:text-sm flex items-center justify-center space-x-2 transition-all bg-blue-600 text-white shadow-xs">
+          <i class="fa-solid fa-microscope text-xs"></i>
+          <span>1. Forensic Audit &amp; Vision Analysis</span>
+        </button>
+        <button id="tabBtn2" onclick="switchTab(2)" class="flex-1 py-2 px-3 rounded-lg font-semibold text-xs md:text-sm flex items-center justify-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
+          <i class="fa-solid fa-satellite text-xs"></i>
+          <span>2. Geospatial Geofence Verification</span>
+        </button>
+        <button id="tabBtn3" onclick="switchTab(3)" class="flex-1 py-2 px-3 rounded-lg font-semibold text-xs md:text-sm flex items-center justify-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
+          <i class="fa-solid fa-scale-balanced text-xs"></i>
+          <span>3. Schedule of Rates (BOQ) Audit</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: FORENSIC VISION & AUDIT FINDINGS -->
+      <div id="tabContent1" class="space-y-6">
+
+        <!-- EXECUTIVE VERDICT BANNER -->
+        <div id="verdictBanner" class="p-5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs transition-all">
+          <div class="space-y-1.5">
+            <div class="flex items-center space-x-2.5">
+              <span id="verdictBadge" class="px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider font-mono">--</span>
+              <h3 id="verdictTitle" class="text-base md:text-lg font-bold tracking-tight">--</h3>
+            </div>
+            <p id="verdictSummary" class="text-xs md:text-sm leading-relaxed max-w-4xl opacity-90"></p>
+          </div>
+          <div class="text-left md:text-right border-t md:border-t-0 md:border-l border-current/20 pt-3 md:pt-0 md:pl-5 shrink-0">
+            <span class="text-[10px] uppercase font-bold tracking-wider opacity-75 block">Composite Fraud Risk</span>
+            <span id="verdictRisk" class="text-2xl md:text-3xl font-extrabold font-mono tabular-nums">--</span>
           </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          <!-- LEFT: PHOTO EVIDENCE -->
-          <div class="lg:col-span-5 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
-            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center justify-between">
-              <span>Contractor Site Evidence</span>
-              <span id="evidenceFilename" class="text-xs lowercase text-blue-600 dark:text-blue-400 font-mono"></span>
-            </h3>
-            <div class="relative bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 aspect-video flex items-center justify-center">
-              <img id="evidenceImage" src="" alt="Contractor Site Photo" class="w-full h-full object-cover">
-              <span id="evidenceTag" class="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-sm text-white text-[11px] px-2.5 py-1 rounded-md font-mono"></span>
+
+          <!-- LEFT COLUMN: EVIDENCE IMAGE & METADATA -->
+          <div class="lg:col-span-5 bg-white dark:bg-[#0d1424] p-5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
+                <i class="fa-regular fa-image text-blue-500"></i>
+                <span>Contractor Site Photographic Evidence</span>
+              </h4>
+              <span id="evidenceFilename" class="text-[11px] font-mono text-blue-600 dark:text-blue-400">--</span>
             </div>
 
-            <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2 text-xs">
-              <div class="flex justify-between"><span class="text-slate-500">Project:</span> <span id="infoProject" class="font-semibold text-right"></span></div>
-              <div class="flex justify-between"><span class="text-slate-500">Department:</span> <span id="infoDept" class="font-semibold text-right"></span></div>
-              <div class="flex justify-between"><span class="text-slate-500">Contractor:</span> <span id="infoContractor" class="font-semibold text-right"></span></div>
-              <div class="flex justify-between"><span class="text-slate-500">MB Reference:</span> <span id="infoMB" class="font-mono font-semibold text-right"></span></div>
+            <!-- Image Frame -->
+            <div class="relative bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700/80 aspect-4/3 flex items-center justify-center">
+              <img id="evidenceImage" src="" alt="Site Inspection Evidence" class="w-full h-full object-cover">
+              <span id="evidenceTag" class="absolute bottom-2 left-2 bg-slate-950/85 backdrop-blur-xs text-white text-[10px] font-mono px-2 py-0.5 rounded border border-white/20">
+                --
+              </span>
+            </div>
+
+            <!-- Structured Metadata Specs -->
+            <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2 text-xs">
+              <div class="flex justify-between items-center py-0.5">
+                <span class="text-slate-400 font-medium">Project Name:</span>
+                <span id="infoProject" class="font-semibold text-slate-800 dark:text-slate-200 text-right max-w-[65%] truncate">--</span>
+              </div>
+              <div class="flex justify-between items-center py-0.5">
+                <span class="text-slate-400 font-medium">Department:</span>
+                <span id="infoDept" class="font-semibold text-slate-800 dark:text-slate-200 text-right">--</span>
+              </div>
+              <div class="flex justify-between items-center py-0.5">
+                <span class="text-slate-400 font-medium">Contractor:</span>
+                <span id="infoContractor" class="font-semibold text-slate-800 dark:text-slate-200 text-right">--</span>
+              </div>
+              <div class="flex justify-between items-center py-0.5">
+                <span class="text-slate-400 font-medium">Measurement Book (MB):</span>
+                <span id="infoMB" class="font-mono font-semibold text-blue-600 dark:text-blue-400 text-right">--</span>
+              </div>
             </div>
           </div>
 
-          <!-- RIGHT: FORENSIC DISCREPANCY LIST -->
-          <div class="lg:col-span-7 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
-            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
-              Multimodal AI Forensic Inspection Breakdown
-            </h3>
-
-            <div class="grid grid-cols-2 gap-3 mb-4">
-              <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700">
-                <span class="text-[11px] text-slate-500 uppercase font-semibold">Identified Physical Stage</span>
-                <p id="forensicStage" class="text-xs md:text-sm font-bold text-slate-900 dark:text-white mt-0.5"></p>
+          <!-- RIGHT COLUMN: AI FORENSIC ANALYSIS & DISCREPANCIES -->
+          <div class="lg:col-span-7 bg-white dark:bg-[#0d1424] p-5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
+                  <i class="fa-solid fa-brain text-purple-500"></i>
+                  <span>Gemini Multimodal Structural Reasoning</span>
+                </h4>
+                <span class="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">Verification Pass</span>
               </div>
-              <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700">
-                <span class="text-[11px] text-slate-500 uppercase font-semibold">Geofence Status</span>
-                <p id="forensicGeofence" class="text-xs md:text-sm font-bold mt-0.5"></p>
+
+              <!-- Stage & Geofence Badges -->
+              <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">AI Detected Construction Stage</span>
+                  <p id="forensicStage" class="text-xs font-bold text-slate-900 dark:text-white mt-1">--</p>
+                </div>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Sanction Boundary Verification</span>
+                  <p id="forensicGeofence" class="text-xs font-bold mt-1">--</p>
+                </div>
+              </div>
+
+              <!-- Observations Bullet Points -->
+              <div class="mb-4">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-2">Ground-Truth Observations:</span>
+                <ul id="observationsList" class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
+                  <!-- Injected via JS -->
+                </ul>
+              </div>
+
+              <!-- Discrepancies Container -->
+              <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-2">Audited Non-Conformances &amp; Overcharges:</span>
+                <div id="discrepanciesContainer" class="space-y-2">
+                  <!-- Injected via JS -->
+                </div>
               </div>
             </div>
 
-            <!-- OBSERVATIONS -->
-            <div class="mb-4">
-              <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Visual Observations (Gemini 2.0):</h4>
-              <ul id="observationsList" class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 list-disc list-inside"></ul>
-            </div>
-
-            <!-- DISCREPANCIES -->
-            <div class="flex-1">
-              <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Detected Non-Conformances & Overcharges:</h4>
-              <div id="discrepanciesContainer" class="space-y-2"></div>
-            </div>
-
-            <!-- CRYPTO SEAL FOOTER -->
-            <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+            <!-- Cryptographic Seal Footer -->
+            <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
               <span class="flex items-center space-x-1.5 truncate">
-                <i class="fa-solid fa-lock text-emerald-600"></i>
-                <span id="cryptoHash" class="truncate"></span>
+                <i class="fa-solid fa-shield-halved text-emerald-500"></i>
+                <span id="cryptoHash" class="truncate max-w-[280px]">--</span>
               </span>
-              <span class="text-slate-400 text-[10px] uppercase">SHA-256 Validated</span>
+              <span class="uppercase tracking-wider text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">Tamper-Proof Seal</span>
             </div>
           </div>
 
@@ -258,79 +348,104 @@
 
       </div>
 
-      <!-- TAB 2: GEOSPATIAL MAP -->
+      <!-- TAB 2: GEOSPATIAL MAP & GEOFENCING -->
       <div id="tabContent2" class="hidden space-y-4">
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div class="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-2">
+        <div class="bg-white dark:bg-[#0d1424] p-5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
+          
+          <div class="flex flex-col md:flex-row md:items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4 gap-2">
             <div>
-              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Hyperlocal Geofence Ground-Truthing</h3>
-              <p class="text-xs text-slate-600 dark:text-slate-400">Verifying contractor camera GPS coordinates against registered tender bounds.</p>
+              <h4 class="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-white flex items-center space-x-1.5">
+                <i class="fa-solid fa-map-location-dot text-blue-500"></i>
+                <span>Constituency GIS Alignment &amp; Boundary Analysis</span>
+              </h4>
+              <p class="text-xs text-slate-500 mt-0.5">Calculates Haversine spherical offset between contractor camera EXIF and tender geofence.</p>
             </div>
             <div class="flex items-center space-x-4 text-xs font-medium">
-              <span class="flex items-center space-x-1.5"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> <span>Sanctioned Tender Site</span></span>
-              <span class="flex items-center space-x-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> <span>Verified Photo</span></span>
-              <span class="flex items-center space-x-1.5"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> <span>Geofence Breach (>500m)</span></span>
+              <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span class="text-slate-600 dark:text-slate-300">Sanctioned Alignment</span></span>
+              <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span class="text-slate-600 dark:text-slate-300">Verified Evidence</span></span>
+              <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span><span class="text-slate-600 dark:text-slate-300">Geofence Violation</span></span>
             </div>
           </div>
 
-          <div id="map" class="w-full h-96 rounded-xl border border-slate-200 dark:border-slate-700 z-0"></div>
+          <!-- Leaflet Container -->
+          <div id="map" class="w-full h-[420px] rounded-lg border border-slate-200 dark:border-slate-700/80 z-0"></div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 text-xs">
-            <div>
-              <span class="text-slate-500">Sanctioned Tender Target:</span>
-              <p id="mapTenderCoords" class="font-mono font-semibold text-slate-800 dark:text-slate-200 mt-0.5"></p>
+          <!-- Coordinate Details Matrix -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs">
+            <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
+              <span class="text-slate-400 font-medium uppercase text-[10px] block">Sanctioned Tender Target</span>
+              <p id="mapTenderCoords" class="font-mono font-bold text-slate-800 dark:text-slate-200 mt-1">--</p>
             </div>
-            <div>
-              <span class="text-slate-500">Photo Evidence Coordinates:</span>
-              <p id="mapPhotoCoords" class="font-mono font-semibold text-slate-800 dark:text-slate-200 mt-0.5"></p>
+            <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
+              <span class="text-slate-400 font-medium uppercase text-[10px] block">Photo Evidence GPS Coordinates</span>
+              <p id="mapPhotoCoords" class="font-mono font-bold text-slate-800 dark:text-slate-200 mt-1">--</p>
             </div>
-            <div>
-              <span class="text-slate-500">Spatial Deviation:</span>
-              <p id="mapDistance" class="font-mono font-semibold text-slate-800 dark:text-slate-200 mt-0.5"></p>
+            <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
+              <span class="text-slate-400 font-medium uppercase text-[10px] block">Spatial Distance Offset</span>
+              <p id="mapDistance" class="font-mono font-bold text-slate-800 dark:text-slate-200 mt-1">--</p>
             </div>
           </div>
+
         </div>
       </div>
 
-      <!-- TAB 3: BOQ RECONCILIATION -->
+      <!-- TAB 3: SCHEDULE OF RATES (BOQ) TABLE -->
       <div id="tabContent3" class="hidden space-y-4">
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div class="flex items-center justify-between mb-4">
+        <div class="bg-white dark:bg-[#0d1424] p-5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
+          
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
             <div>
-              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Bill of Quantities (BOQ) Rate Auditor</h3>
-              <p class="text-xs text-slate-600 dark:text-slate-400">Auditing claimed unit rates against State Schedule of Rates (SoR) and sanction ceilings.</p>
+              <h4 class="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-white flex items-center space-x-1.5">
+                <i class="fa-solid fa-table text-blue-500"></i>
+                <span>Tender Bill of Quantities (BOQ) vs. Contractor Invoiced Rates</span>
+              </h4>
+              <p class="text-xs text-slate-500 mt-0.5">Strict compliance audit against CPWD / State Schedule of Rates (SoR) and sanctioned ceilings.</p>
             </div>
+            <span class="text-xs font-mono font-medium text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">Itemized Audit</span>
           </div>
 
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase font-semibold">
+          <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+            <table class="w-full text-left text-xs divide-y divide-slate-200 dark:divide-slate-800">
+              <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
                 <tr>
-                  <th class="py-3 px-3">Item Code</th>
-                  <th class="py-3 px-3">Description</th>
-                  <th class="py-3 px-3 text-right">Claimed Qty</th>
-                  <th class="py-3 px-3 text-right">Sanctioned Qty</th>
-                  <th class="py-3 px-3 text-right">Billed Rate</th>
-                  <th class="py-3 px-3 text-right">Govt. SoR Rate</th>
-                  <th class="py-3 px-3 text-right">Total Claimed</th>
-                  <th class="py-3 px-3 text-center">Audit Status</th>
+                  <th class="py-3 px-3.5">Item Code</th>
+                  <th class="py-3 px-3.5">Material Description</th>
+                  <th class="py-3 px-3.5 text-right">Claimed Qty</th>
+                  <th class="py-3 px-3.5 text-right">Sanctioned Qty</th>
+                  <th class="py-3 px-3.5 text-right">Billed Rate</th>
+                  <th class="py-3 px-3.5 text-right">Approved SoR Rate</th>
+                  <th class="py-3 px-3.5 text-right">Claim Total</th>
+                  <th class="py-3 px-3.5 text-center">Audit Status</th>
                 </tr>
               </thead>
-              <tbody id="boqTableBody" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+              <tbody id="boqTableBody" class="divide-y divide-slate-100 dark:divide-slate-800/80 bg-white dark:bg-[#0d1424]">
+                <!-- Populated dynamically via JS -->
+              </tbody>
             </table>
           </div>
+
         </div>
       </div>
 
-      <!-- FOOTER -->
-      <footer class="mt-auto pt-8 pb-4 text-center text-xs text-slate-400 border-t border-slate-200 dark:border-slate-800">
-        <p>Nirman-Drishti &bull; Digital Public Infrastructure for Indian Public Works & Bull; Powered by Google Cloud & Gemini 2.0</p>
-      </footer>
-    </main>
+    </section>
 
   </div>
 
-  <!-- APPLICATION LOGIC -->
+  <!-- FOOTER -->
+  <footer class="mt-auto border-t border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0d1424] py-4 text-center text-xs text-slate-400">
+    <div class="max-w-[1720px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center space-x-2">
+        <span class="font-bold text-slate-700 dark:text-slate-300">Nirman-Drishti</span>
+        <span>&bull;</span>
+        <span>Digital Public Infrastructure for Public Works Integrity</span>
+      </div>
+      <div class="font-mono text-[11px] text-slate-500">
+        Powered by Google Cloud &bull; Vertex AI &bull; Gemini 2.0
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT ENGINE -->
   <script>
     const CLAIMS_DATA = {
       "CLM-001": {
@@ -340,30 +455,31 @@
         department: "Public Works Department (PWD)",
         scheme: "PMGSY (Pradhan Mantri Gram Sadak Yojana)",
         contractor: "Shree Balaji Infra Projects Pvt Ltd",
-        budget_lakhs: "₹48.0 Lakhs",
-        claimed_lakhs: "₹48.00 Lakhs",
-        flagged_lakhs: "₹48.00 Lakhs",
+        budget_lakhs: "Rs. 48.0 Lakhs",
+        claimed_lakhs: "Rs. 48.00 Lakhs",
+        flagged_lakhs: "Rs. 48.00 Lakhs",
+        savings_tag: "Saved Rs. 48.00L (100%)",
         mb_ref: "MB-PWD-KA/2026/Vol-IV/Pg-112",
         photo_filename: "road_wbm_unpaved.jpg",
         image_src: "assets/road_wbm_unpaved.jpg",
         verdict: "REJECTED",
-        verdict_title: "CRITICAL FRAUD ALERT — DISBURSEMENT BLOCKED",
+        verdict_title: "CRITICAL FRAUD DETECTED — PAYMENT BLOCKED",
         risk_score: "100.0/100",
-        summary: "Claim rejected due to 4 critical non-conformances: 11.5km geofence breach, missing bituminous wear coat, ₹88k/MT rate inflation on bitumen, and ₹2.25L phantom item. Public money fully protected.",
+        summary: "Claim rejected due to 4 critical violations: 11.5 km geofence breach, bituminous wear coat absent (raw gravel visible), Rs. 88,000/MT rate inflation on bitumen vs Rs. 65,000/MT SoR, and Rs. 2.25L unsanctioned phantom item. All fund releases halted.",
         stage_detected: "Compacted WBM Gravel Base (Unpaved)",
         geofence_status: "VIOLATION (11,780m away)",
         geofence_verified: false,
         observations: [
-          "Compacted Water Bound Macadam (WBM) coarse aggregate sub-base visible.",
-          "Surface dress / Bituminous Concrete (BC) wearing course claimed as 100% complete is physically absent.",
-          "EXIF coordinates locate evidence 11.7 km outside sanctioned tender boundary."
+          "Compacted Water Bound Macadam (WBM) coarse aggregate sub-base confirmed on site.",
+          "Final Bituminous Concrete (BC) wearing coat claimed as 100% finished is physically absent.",
+          "EXIF coordinates verify evidence was captured 11.7 km outside sanctioned tender alignment."
         ],
         discrepancies: [
-          { cat: "GEO_TAMPERING", sev: "CRITICAL", desc: "Photo coordinates (14.3650, 74.5200) are 11,780m away from site. Exceeds 500m geofence perimeter.", amt: "₹48,00,000.00" },
-          { cat: "VISION_MISMATCH", sev: "CRITICAL", desc: "Photographic evidence shows raw gravel. Bituminous wearing coat claimed 100% finished is absent.", amt: "₹21,60,000.00" },
-          { cat: "RATE_INFLATION", sev: "HIGH", desc: "Bitumen 60/70 billed at ₹88,000/MT vs approved SoR rate of ₹65,000/MT (Excess: ₹23,000/MT).", amt: "₹25,30,000.00" },
-          { cat: "QUANTITY_OVERCLAIM", sev: "CRITICAL", desc: "Billed 110 MT bitumen exceeds sanctioned ceiling 75 MT by 35 MT.", amt: "₹22,75,000.00" },
-          { cat: "QUANTITY_OVERCLAIM", sev: "CRITICAL", desc: "Unsanctioned / Phantom item 'PHANTOM-999' (Paver blocks). Not in approved tender BOQ.", amt: "₹2,25,000.00" }
+          { cat: "GEO_TAMPERING", sev: "CRITICAL", desc: "Photo coordinates (14.3650, 74.5200) are 11,780m away from site. Exceeds 500m geofence perimeter.", amt: "Rs. 4,800,000.00" },
+          { cat: "VISION_MISMATCH", sev: "CRITICAL", desc: "Photographic evidence shows raw gravel. Bituminous wearing coat claimed 100% finished is absent.", amt: "Rs. 2,160,000.00" },
+          { cat: "RATE_INFLATION", sev: "HIGH", desc: "Bitumen 60/70 billed at Rs. 88,000/MT vs approved SoR rate of Rs. 65,000/MT (Excess: Rs. 23,000/MT).", amt: "Rs. 2,530,000.00" },
+          { cat: "QUANTITY_OVERCLAIM", sev: "CRITICAL", desc: "Billed 110 MT bitumen exceeds sanctioned ceiling 75 MT by 35 MT.", amt: "Rs. 2,275,000.00" },
+          { cat: "QUANTITY_OVERCLAIM", sev: "CRITICAL", desc: "Unsanctioned / Phantom item 'PHANTOM-999' (Paver blocks). Not in approved tender BOQ.", amt: "Rs. 225,000.00" }
         ],
         crypto_hash: "8e4077c677cfde0a130784e47cb7ce1de6c3ff04a427c872722c576d12fb0e8f",
         tender_lat: 14.2812,
@@ -372,11 +488,11 @@
         photo_lng: 74.5200,
         distance_meters: "11,780.4m",
         boq_items: [
-          { code: "R-101", desc: "Earthwork excavation & sub-grade prep", c_qty: "3,500.0 cum", s_qty: "3,500.0 cum", b_rate: "₹180.00", s_rate: "₹180.00", total: "₹6,30,000.00", status: "MATCH" },
-          { code: "R-102", desc: "Granular Sub-Base (GSB) 150mm", c_qty: "1,800.0 cum", s_qty: "1,800.0 cum", b_rate: "₹650.00", s_rate: "₹650.00", total: "₹11,70,000.00", status: "MATCH" },
-          { code: "R-103", desc: "Water Bound Macadam (WBM) Gr-III", c_qty: "1,200.0 cum", s_qty: "1,200.0 cum", b_rate: "₹820.00", s_rate: "₹820.00", total: "₹9,84,000.00", status: "MATCH" },
-          { code: "R-104", desc: "Bituminous Concrete (BC) 25mm", c_qty: "110.0 MT", s_qty: "75.0 MT", b_rate: "₹88,000.00", s_rate: "₹65,000.00", total: "₹96,80,000.00", status: "OVERCHARGE" },
-          { code: "PHANTOM-999", desc: "Roadside Paver Blocks (Unsanctioned)", c_qty: "500.0 m", s_qty: "0.0 m", b_rate: "₹450.00", s_rate: "N/A", total: "₹2,25,000.00", status: "PHANTOM" }
+          { code: "R-101", desc: "Earthwork excavation & sub-grade prep", c_qty: "3,500.0 cum", s_qty: "3,500.0 cum", b_rate: "Rs. 180.00", s_rate: "Rs. 180.00", total: "Rs. 630,000.00", status: "MATCH" },
+          { code: "R-102", desc: "Granular Sub-Base (GSB) 150mm", c_qty: "1,800.0 cum", s_qty: "1,800.0 cum", b_rate: "Rs. 650.00", s_rate: "Rs. 650.00", total: "Rs. 1,170,000.00", status: "MATCH" },
+          { code: "R-103", desc: "Water Bound Macadam (WBM) Gr-III", c_qty: "1,200.0 cum", s_qty: "1,200.0 cum", b_rate: "Rs. 820.00", s_rate: "Rs. 820.00", total: "Rs. 984,000.00", status: "MATCH" },
+          { code: "R-104", desc: "Bituminous Concrete (BC) 25mm", c_qty: "110.0 MT", s_qty: "75.0 MT", b_rate: "Rs. 88,000.00", s_rate: "Rs. 65,000.00", total: "Rs. 9,680,000.00", status: "OVERCHARGE" },
+          { code: "PHANTOM-999", desc: "Roadside Paver Blocks (Unsanctioned)", c_qty: "500.0 m", s_qty: "0.0 m", b_rate: "Rs. 450.00", s_rate: "N/A", total: "Rs. 225,000.00", status: "PHANTOM" }
         ]
       },
       "CLM-002": {
@@ -386,9 +502,10 @@
         department: "Rural Water Supply & Sanitation Department",
         scheme: "Jal Jeevan Mission (JJM)",
         contractor: "Apex Green Power Systems LLP",
-        budget_lakhs: "₹14.5 Lakhs",
-        claimed_lakhs: "₹14.50 Lakhs",
-        flagged_lakhs: "₹0.00 Lakhs",
+        budget_lakhs: "Rs. 14.5 Lakhs",
+        claimed_lakhs: "Rs. 14.50 Lakhs",
+        flagged_lakhs: "Rs. 0.00 Lakhs",
+        savings_tag: "Zero Discrepancy",
         mb_ref: "MB-JJM-MH/2026/Vol-I/Pg-48",
         photo_filename: "solar_pump_verified.jpg",
         image_src: "assets/solar_pump_verified.jpg",
@@ -412,10 +529,10 @@
         photo_lng: 73.9878,
         distance_meters: "28.3m",
         boq_items: [
-          { code: "W-201", desc: "Borewell drilling 150mm dia to 120m", c_qty: "120.0 m", s_qty: "120.0 m", b_rate: "₹1,250.00", s_rate: "₹1,250.00", total: "₹1,50,000.00", status: "MATCH" },
-          { code: "W-202", desc: "5 HP Solar Submersible Pump & Controller", c_qty: "1.0 set", s_qty: "1.0 set", b_rate: "₹3,80,000.00", s_rate: "₹3,80,000.00", total: "₹3,80,000.00", status: "MATCH" },
-          { code: "W-203", desc: "Elevated HDPE Storage Tank 10,000L", c_qty: "1.0 nos", s_qty: "1.0 nos", b_rate: "₹4,20,000.00", s_rate: "₹4,20,000.00", total: "₹4,20,000.00", status: "MATCH" },
-          { code: "W-204", desc: "Distribution network & chlorination doser", c_qty: "800.0 m", s_qty: "800.0 m", b_rate: "₹625.00", s_rate: "₹625.00", total: "₹5,00,000.00", status: "MATCH" }
+          { code: "W-201", desc: "Borewell drilling 150mm dia to 120m", c_qty: "120.0 m", s_qty: "120.0 m", b_rate: "Rs. 1,250.00", s_rate: "Rs. 1,250.00", total: "Rs. 150,000.00", status: "MATCH" },
+          { code: "W-202", desc: "5 HP Solar Submersible Pump & Controller", c_qty: "1.0 set", s_qty: "1.0 set", b_rate: "Rs. 380,000.00", s_rate: "Rs. 380,000.00", total: "Rs. 380,000.00", status: "MATCH" },
+          { code: "W-203", desc: "Elevated HDPE Storage Tank 10,000L", c_qty: "1.0 nos", s_qty: "1.0 nos", b_rate: "Rs. 420,000.00", s_rate: "Rs. 420,000.00", total: "Rs. 420,000.00", status: "MATCH" },
+          { code: "W-204", desc: "Distribution network & chlorination doser", c_qty: "800.0 m", s_qty: "800.0 m", b_rate: "Rs. 625.00", s_rate: "Rs. 625.00", total: "Rs. 500,000.00", status: "MATCH" }
         ]
       },
       "CLM-003": {
@@ -425,16 +542,17 @@
         department: "Municipal Corporation of Delhi (MCD)",
         scheme: "MPLADS (Members of Parliament Local Area Development)",
         contractor: "Capital Urban Builders Ltd",
-        budget_lakhs: "₹65.0 Lakhs",
-        claimed_lakhs: "₹32.50 Lakhs",
-        flagged_lakhs: "₹3.15 Lakhs",
+        budget_lakhs: "Rs. 65.0 Lakhs",
+        claimed_lakhs: "Rs. 32.50 Lakhs",
+        flagged_lakhs: "Rs. 3.15 Lakhs",
+        savings_tag: "Withheld Rs. 3.15L (Inflation)",
         mb_ref: "MB-MCD/2026/Najaf/Pg-85",
         photo_filename: "building_frame_stage.jpg",
         image_src: "assets/building_frame_stage.jpg",
         verdict: "VIGILANCE_HOLD",
         verdict_title: "WITHHELD FOR EXECUTIVE SCRUTINY (Rate Inflation)",
         risk_score: "15.0/100",
-        summary: "Physical RCC frame casting verified on site within bounds. However, contractor inflated RCC M25 concrete rate from ₹6,400 to ₹8,200/cum. Overcharge of ₹3.15 Lakhs withheld pending Executive Engineer review.",
+        summary: "Physical RCC frame casting verified on site within bounds. However, contractor inflated RCC M25 concrete rate from Rs. 6,400 to Rs. 8,200/cum. Overcharge of Rs. 3.15 Lakhs withheld pending Executive Engineer review.",
         stage_detected: "RCC Frame & Column Superstructure (Milestone 1)",
         geofence_status: "VERIFIED (Within 31.4m)",
         geofence_verified: true,
@@ -444,7 +562,7 @@
           "Rate disparity flagged on structural concrete line items."
         ],
         discrepancies: [
-          { cat: "RATE_INFLATION", sev: "HIGH", desc: "Rate Inflation for RCC M25: Billed at ₹8,200.00/cum vs SoR rate ₹6,400.00/cum (Excess: ₹1,800/cum).", amt: "₹3,15,000.00" }
+          { cat: "RATE_INFLATION", sev: "HIGH", desc: "Rate Inflation for RCC M25: Billed at Rs. 8,200.00/cum vs SoR rate Rs. 6,400.00/cum (Excess: Rs. 1,800/cum).", amt: "Rs. 315,000.00" }
         ],
         crypto_hash: "55fce21890cd123490bca87123ef617834510091238472619082341908234111",
         tender_lat: 28.6092,
@@ -453,15 +571,62 @@
         photo_lng: 76.9856,
         distance_meters: "31.4m",
         boq_items: [
-          { code: "C-301", desc: "Reinforced Cement Concrete (RCC M25)", c_qty: "175.0 cum", s_qty: "350.0 cum", b_rate: "₹8,200.00", s_rate: "₹6,400.00", total: "₹14,35,000.00", status: "OVERCHARGE" },
-          { code: "C-303", desc: "TMT FE-550D Reinforcement Steel", c_qty: "16.0 MT", s_qty: "32.0 MT", b_rate: "₹70,000.00", s_rate: "₹70,000.00", total: "₹11,20,000.00", status: "MATCH" }
+          { code: "C-301", desc: "Reinforced Cement Concrete (RCC M25)", c_qty: "175.0 cum", s_qty: "350.0 cum", b_rate: "Rs. 8,200.00", s_rate: "Rs. 6,400.00", total: "Rs. 1,435,000.00", status: "OVERCHARGE" },
+          { code: "C-303", desc: "TMT FE-550D Reinforcement Steel", c_qty: "16.0 MT", s_qty: "32.0 MT", b_rate: "Rs. 70,000.00", s_rate: "Rs. 70,000.00", total: "Rs. 1,120,000.00", status: "MATCH" }
         ]
       }
     };
 
-    let activeClaim = CLAIMS_DATA["CLM-001"];
+    let activeKey = "CLM-001";
+    let activeClaim = CLAIMS_DATA[activeKey];
     let map = null;
     let markersLayer = null;
+
+    function renderClaimCards() {
+      const container = document.getElementById("claimCardsContainer");
+      container.innerHTML = Object.keys(CLAIMS_DATA).map(key => {
+        const item = CLAIMS_DATA[key];
+        const isSelected = key === activeKey;
+
+        let statusClass = "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-900";
+        let dotColor = "bg-rose-500";
+        if (item.verdict === "APPROVED") {
+          statusClass = "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-900";
+          dotColor = "bg-emerald-500";
+        } else if (item.verdict === "VIGILANCE_HOLD") {
+          statusClass = "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-900";
+          dotColor = "bg-amber-500";
+        }
+
+        const borderStyle = isSelected
+          ? "border-blue-600 dark:border-blue-500 bg-blue-50/40 dark:bg-blue-950/30 ring-1 ring-blue-600/30"
+          : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700";
+
+        return `
+          <div onclick="selectClaim('${key}')" class="p-3 rounded-xl border ${borderStyle} cursor-pointer transition-all duration-150">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="font-mono text-xs font-bold text-slate-800 dark:text-slate-200">${item.id}</span>
+              <span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${statusClass}">
+                <span class="w-1.5 h-1.5 rounded-full ${dotColor}"></span>
+                <span>${item.verdict}</span>
+              </span>
+            </div>
+            <p class="text-xs font-semibold text-slate-800 dark:text-slate-100 line-clamp-1">${item.project_name}</p>
+            <div class="flex items-center justify-between text-[11px] text-slate-500 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 font-mono">
+              <span>Claim: ${item.claimed_lakhs}</span>
+              <span class="font-bold ${item.verdict === 'APPROVED' ? 'text-emerald-600' : 'text-rose-600'}">${item.savings_tag}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function selectClaim(key) {
+      activeKey = key;
+      activeClaim = CLAIMS_DATA[key];
+      renderClaimCards();
+      renderWorkspace();
+    }
 
     function setTheme(mode) {
       const html = document.documentElement;
@@ -470,12 +635,12 @@
 
       if (mode === 'dark') {
         html.classList.add('dark');
-        darkBtn.classList.add('bg-white', 'text-slate-900', 'shadow-sm', 'dark:bg-slate-700', 'dark:text-white');
-        lightBtn.classList.remove('bg-white', 'text-slate-900', 'shadow-sm', 'dark:bg-slate-700', 'dark:text-white');
+        darkBtn.classList.add('bg-white', 'text-slate-900', 'shadow-xs', 'dark:bg-slate-700', 'dark:text-white');
+        lightBtn.classList.remove('bg-white', 'text-slate-900', 'shadow-xs', 'dark:bg-slate-700', 'dark:text-white');
       } else {
         html.classList.remove('dark');
-        lightBtn.classList.add('bg-white', 'text-slate-900', 'shadow-sm', 'dark:bg-slate-700', 'dark:text-white');
-        darkBtn.classList.remove('bg-white', 'text-slate-900', 'shadow-sm', 'dark:bg-slate-700', 'dark:text-white');
+        lightBtn.classList.add('bg-white', 'text-slate-900', 'shadow-xs', 'dark:bg-slate-700', 'dark:text-white');
+        darkBtn.classList.remove('bg-white', 'text-slate-900', 'shadow-xs', 'dark:bg-slate-700', 'dark:text-white');
       }
 
       if (map) {
@@ -494,12 +659,10 @@
         const btn = document.getElementById(`tabBtn${id}`);
         if (id === tabId) {
           content.classList.remove("hidden");
-          btn.classList.add("border-blue-600", "text-blue-600", "dark:text-blue-400");
-          btn.classList.remove("border-transparent", "text-slate-500", "dark:text-slate-400");
+          btn.className = "flex-1 py-2 px-3 rounded-lg font-semibold text-xs md:text-sm flex items-center justify-center space-x-2 transition-all bg-blue-600 text-white shadow-xs";
         } else {
           content.classList.add("hidden");
-          btn.classList.remove("border-blue-600", "text-blue-600", "dark:text-blue-400");
-          btn.classList.add("border-transparent", "text-slate-500", "dark:text-slate-400");
+          btn.className = "flex-1 py-2 px-3 rounded-lg font-semibold text-xs md:text-sm flex items-center justify-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
         }
       });
 
@@ -508,18 +671,19 @@
       }
     }
 
-    function loadClaim(key) {
-      activeClaim = CLAIMS_DATA[key];
-      renderClaim();
-    }
-
-    function renderClaim() {
+    function renderWorkspace() {
       const c = activeClaim;
 
+      // Telemetry Cards
       document.getElementById("metricBudget").innerText = c.budget_lakhs;
       document.getElementById("metricTender").innerText = c.tender_id;
+      document.getElementById("metricSchemeTag").innerText = c.scheme;
       document.getElementById("metricClaimed").innerText = c.claimed_lakhs;
       document.getElementById("metricFlagged").innerText = c.flagged_lakhs;
+
+      const savEl = document.getElementById("metricSavingsTag");
+      savEl.innerText = c.savings_tag;
+      savEl.className = c.verdict === 'APPROVED' ? "text-[10px] font-medium text-emerald-600 dark:text-emerald-400 mt-1 block" : "text-[10px] font-medium text-rose-500 dark:text-rose-400 mt-1 block";
 
       // Verdict Banner
       const banner = document.getElementById("verdictBanner");
@@ -532,91 +696,106 @@
       summary.innerText = c.summary;
 
       if (c.verdict === "APPROVED") {
-        banner.className = "p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800/50";
-        badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-600 text-white";
+        banner.className = "p-5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 bg-emerald-50/70 text-emerald-900 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-200 dark:border-emerald-900/60 shadow-xs";
+        badge.className = "px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-600 text-white font-mono";
         badge.innerText = "APPROVED";
         title.innerText = c.verdict_title;
-        risk.className = "text-2xl md:text-3xl font-extrabold text-emerald-700 dark:text-emerald-400";
+        risk.className = "text-2xl md:text-3xl font-extrabold font-mono text-emerald-700 dark:text-emerald-400 tabular-nums";
       } else if (c.verdict === "VIGILANCE_HOLD") {
-        banner.className = "p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-800/50";
-        badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-600 text-white";
+        banner.className = "p-5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 bg-amber-50/70 text-amber-900 border-amber-200 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-900/60 shadow-xs";
+        badge.className = "px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-600 text-white font-mono";
         badge.innerText = "HOLD";
         title.innerText = c.verdict_title;
-        risk.className = "text-2xl md:text-3xl font-extrabold text-amber-700 dark:text-amber-400";
+        risk.className = "text-2xl md:text-3xl font-extrabold font-mono text-amber-700 dark:text-amber-400 tabular-nums";
       } else {
-        banner.className = "p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 bg-rose-50 text-rose-900 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800/50";
-        badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-600 text-white";
+        banner.className = "p-5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 bg-rose-50/70 text-rose-900 border-rose-200 dark:bg-rose-950/30 dark:text-rose-200 dark:border-rose-900/60 shadow-xs";
+        badge.className = "px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-600 text-white font-mono";
         badge.innerText = "REJECTED";
         title.innerText = c.verdict_title;
-        risk.className = "text-2xl md:text-3xl font-extrabold text-rose-700 dark:text-rose-400";
+        risk.className = "text-2xl md:text-3xl font-extrabold font-mono text-rose-700 dark:text-rose-400 tabular-nums";
       }
 
-      // Evidence & Info
+      // Evidence Meta
       document.getElementById("evidenceFilename").innerText = c.photo_filename;
       document.getElementById("evidenceImage").src = c.image_src;
-      document.getElementById("evidenceTag").innerText = `Evidence: ${c.id}`;
+      document.getElementById("evidenceTag").innerText = `Evidence Ref: ${c.id}`;
       document.getElementById("infoProject").innerText = c.project_name;
       document.getElementById("infoDept").innerText = c.department;
       document.getElementById("infoContractor").innerText = c.contractor;
       document.getElementById("infoMB").innerText = c.mb_ref;
 
-      // Forensic specs
+      // Forensic Specs
       document.getElementById("forensicStage").innerText = c.stage_detected;
       const geoEl = document.getElementById("forensicGeofence");
       geoEl.innerText = c.geofence_status;
-      geoEl.className = c.geofence_verified ? "text-xs md:text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5" : "text-xs md:text-sm font-bold text-rose-600 dark:text-rose-400 mt-0.5";
+      geoEl.className = c.geofence_verified ? "text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-1" : "text-xs font-bold text-rose-600 dark:text-rose-400 mt-1";
 
       // Observations
       const obsContainer = document.getElementById("observationsList");
-      obsContainer.innerHTML = c.observations.map(o => `<li>${o}</li>`).join("");
+      obsContainer.innerHTML = c.observations.map(o => `
+        <li class="flex items-start space-x-2">
+          <i class="fa-solid fa-angle-right text-blue-500 mt-0.5 text-[10px]"></i>
+          <span class="leading-relaxed">${o}</span>
+        </li>
+      `).join("");
 
       // Discrepancies
       const discContainer = document.getElementById("discrepanciesContainer");
       if (c.discrepancies.length === 0) {
-        discContainer.innerHTML = `<div class="p-3 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-medium flex items-center space-x-2"><i class="fa-solid fa-circle-check"></i><span>All line items and parameters strictly adhere to sanction guidelines.</span></div>`;
+        discContainer.innerHTML = `
+          <div class="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-200 rounded-lg text-xs font-medium flex items-center space-x-2">
+            <i class="fa-solid fa-circle-check text-emerald-600"></i>
+            <span>All line items and physical parameters strictly adhere to sanction guidelines.</span>
+          </div>
+        `;
       } else {
         discContainer.innerHTML = c.discrepancies.map(d => `
-          <div class="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-xs flex items-start justify-between gap-3">
-            <div>
-              <span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded ${d.sev === 'CRITICAL' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'} mr-1.5">${d.sev}</span>
-              <span class="font-medium text-slate-800 dark:text-slate-200">${d.desc}</span>
+          <div class="p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-xs flex items-start justify-between gap-3">
+            <div class="space-y-0.5">
+              <div class="flex items-center space-x-1.5">
+                <span class="inline-block px-1.5 py-0.2 text-[9px] font-mono font-bold rounded uppercase ${d.sev === 'CRITICAL' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'}">${d.sev}</span>
+                <span class="text-[10px] font-mono text-slate-400 uppercase font-semibold">${d.cat}</span>
+              </div>
+              <p class="font-medium text-slate-800 dark:text-slate-200 leading-snug">${d.desc}</p>
             </div>
-            <span class="font-bold text-rose-600 dark:text-rose-400 whitespace-nowrap">${d.amt}</span>
+            <span class="font-mono font-bold text-rose-600 dark:text-rose-400 whitespace-nowrap text-right pt-1">${d.amt}</span>
           </div>
         `).join("");
       }
 
       document.getElementById("cryptoHash").innerText = `SHA256: ${c.crypto_hash}`;
 
-      // Update Map Coords
-      document.getElementById("mapTenderCoords").innerText = `${c.tender_lat.toFixed(4)}, ${c.tender_lng.toFixed(4)}`;
-      document.getElementById("mapPhotoCoords").innerText = `${c.photo_lat.toFixed(4)}, ${c.photo_lng.toFixed(4)}`;
+      // Coordinates
+      document.getElementById("mapTenderCoords").innerText = `${c.tender_lat.toFixed(4)}° N, ${c.tender_lng.toFixed(4)}° E`;
+      document.getElementById("mapPhotoCoords").innerText = `${c.photo_lat.toFixed(4)}° N, ${c.photo_lng.toFixed(4)}° E`;
       document.getElementById("mapDistance").innerText = `${c.distance_meters} (Allowed: 500m)`;
 
-      // Update BOQ Table
+      // BOQ Table with Tabular Numerals
       const boqBody = document.getElementById("boqTableBody");
-      boqBody.innerHTML = c.boq_items.map(i => {
+      boqBody.innerHTML = c.boq_items.map((i, idx) => {
         let badgeClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300";
         if (i.status === "OVERCHARGE") badgeClass = "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300";
         if (i.status === "PHANTOM") badgeClass = "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300";
 
+        const rowBg = idx % 2 === 0 ? "bg-transparent" : "bg-slate-50/40 dark:bg-slate-800/20";
+
         return `
-          <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-            <td class="py-2.5 px-3 font-mono font-bold">${i.code}</td>
-            <td class="py-2.5 px-3 font-medium">${i.desc}</td>
-            <td class="py-2.5 px-3 text-right font-mono">${i.c_qty}</td>
-            <td class="py-2.5 px-3 text-right font-mono">${i.s_qty}</td>
-            <td class="py-2.5 px-3 text-right font-mono font-semibold">${i.b_rate}</td>
-            <td class="py-2.5 px-3 text-right font-mono">${i.s_rate}</td>
-            <td class="py-2.5 px-3 text-right font-mono font-bold">${i.total}</td>
-            <td class="py-2.5 px-3 text-center">
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass}">${i.status}</span>
+          <tr class="${rowBg} hover:bg-blue-50/30 dark:hover:bg-blue-950/20 transition-colors">
+            <td class="py-2.5 px-3.5 font-mono font-bold text-slate-800 dark:text-slate-200">${i.code}</td>
+            <td class="py-2.5 px-3.5 font-medium text-slate-700 dark:text-slate-300">${i.desc}</td>
+            <td class="py-2.5 px-3.5 text-right font-mono tabular-nums text-slate-600 dark:text-slate-400">${i.c_qty}</td>
+            <td class="py-2.5 px-3.5 text-right font-mono tabular-nums text-slate-600 dark:text-slate-400">${i.s_qty}</td>
+            <td class="py-2.5 px-3.5 text-right font-mono tabular-nums font-semibold text-slate-900 dark:text-white">${i.b_rate}</td>
+            <td class="py-2.5 px-3.5 text-right font-mono tabular-nums text-slate-600 dark:text-slate-400">${i.s_rate}</td>
+            <td class="py-2.5 px-3.5 text-right font-mono tabular-nums font-bold text-slate-900 dark:text-white">${i.total}</td>
+            <td class="py-2.5 px-3.5 text-center">
+              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold font-mono ${badgeClass}">${i.status}</span>
             </td>
           </tr>
         `;
       }).join("");
 
-      // Render Leaflet Map
+      // Update Map
       updateLeafletMap();
     }
 
@@ -651,7 +830,7 @@
 
       // Photo Marker
       const photoColor = c.geofence_verified ? '#10b981' : '#ef4444';
-      const circleMarker = L.circleMarker(photoLatLng, {
+      L.circleMarker(photoLatLng, {
         color: photoColor,
         fillColor: photoColor,
         fillOpacity: 0.9,
@@ -675,11 +854,11 @@
       const doc = new jsPDF();
 
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(16);
+      doc.setFontSize(15);
       doc.setTextColor(15, 42, 74);
       doc.text("GOVERNMENT OF INDIA", 105, 20, { align: "center" });
 
-      doc.setFontSize(10);
+      doc.setFontSize(9.5);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(70, 80, 95);
       doc.text("STATE PUBLIC WORKS DEPARTMENT • DIRECTORATE OF DIGITAL VIGILANCE", 105, 26, { align: "center" });
@@ -716,8 +895,8 @@
       doc.text(`Contractor: ${c.contractor}`, 20, y);
       doc.text(`MB Ref: ${c.mb_ref}`, 110, y);
       y += 7;
-      doc.text(`Claimed: Rs. ${c.claimed_lakhs}`, 20, y);
-      doc.text(`Questioned: Rs. ${c.flagged_lakhs}`, 110, y);
+      doc.text(`Claimed: ${c.claimed_lakhs}`, 20, y);
+      doc.text(`Questioned: ${c.flagged_lakhs}`, 110, y);
       y += 7;
       doc.text(`Geofence: ${c.geofence_status}`, 20, y);
       doc.text(`Stage: ${c.stage_detected}`, 110, y);
@@ -745,7 +924,8 @@
     window.addEventListener('DOMContentLoaded', () => {
       setTheme('light');
       initMap();
-      renderClaim();
+      renderClaimCards();
+      renderWorkspace();
     });
   </script>
 </body>
