@@ -2,7 +2,8 @@
 ### *Autonomous Multimodal Forensic Audit Engine for Public Infrastructure & Constituency Works*
 > **Built for:** *Build with AI: Code for Communities 2.0 (Google Cloud & Hack2Skill)*  
 > **Track:** *AI for Digital Public Infrastructure & Governance*  
-> **Repository:** [github.com/hrlpavan/nirman-drishti](https://github.com/hrlpavan/nirman-drishti)
+> **Repository:** [github.com/hrlpavan/nirman-drishti](https://github.com/hrlpavan/nirman-drishti)  
+> **Plain-English Explainer:** [PROJECT_EXPLAINER.md](PROJECT_EXPLAINER.md)
 
 ---
 
