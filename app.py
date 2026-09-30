@@ -23,49 +23,143 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Styling
-st.markdown("""
-<style>
-    .main-header {
-        font-size: 2.2rem;
-        font-weight: 700;
-        color: #0f2a4a;
-        margin-bottom: 0.2rem;
-    }
-    .sub-header {
-        font-size: 1.05rem;
-        color: #4a5568;
-        margin-bottom: 1.5rem;
-    }
-    .metric-card {
-        background-color: #f8fafc;
-        border-radius: 8px;
-        padding: 16px;
-        border: 1px solid #e2e8f0;
-    }
-    .status-badge-approved {
-        background-color: #dcfce7;
-        color: #15803d;
-        padding: 4px 12px;
-        border-radius: 9999px;
-        font-weight: 600;
-    }
-    .status-badge-rejected {
-        background-color: #fee2e2;
-        color: #b91c1c;
-        padding: 4px 12px;
-        border-radius: 9999px;
-        font-weight: 600;
-    }
-    .status-badge-vigilance {
-        background-color: #ffedd5;
-        color: #c2410c;
-        padding: 4px 12px;
-        border-radius: 9999px;
-        font-weight: 600;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Theme state management & custom styling
+def get_theme_css(theme_mode: str) -> str:
+    # Base adaptive styling using Streamlit native variables
+    base_css = """
+    <style>
+        .main-header {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-color, #1e293b);
+            margin-bottom: 0.2rem;
+        }
+        .sub-header {
+            font-size: 1.05rem;
+            color: var(--text-color, #475569);
+            opacity: 0.85;
+            margin-bottom: 1.5rem;
+        }
+        .metric-card {
+            background-color: var(--secondary-background-color, #f8fafc);
+            color: var(--text-color, #0f172a);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid rgba(128, 128, 128, 0.2);
+        }
+        .status-badge-approved {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-weight: 600;
+            border: 1px solid rgba(34, 197, 94, 0.35);
+        }
+        .status-badge-rejected {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-weight: 600;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+        }
+        .status-badge-vigilance {
+            background-color: rgba(249, 115, 22, 0.2);
+            color: #f97316;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-weight: 600;
+            border: 1px solid rgba(249, 115, 22, 0.35);
+        }
+    </style>
+    """
+    if theme_mode == "🌙 Dark Mode":
+        dark_override = """
+        <style>
+            :root {
+                --background-color: #0e1117;
+                --secondary-background-color: #1a1f2c;
+                --text-color: #f1f5f9;
+            }
+            [data-testid="stAppViewContainer"] {
+                background-color: #0e1117 !important;
+                color: #f1f5f9 !important;
+            }
+            [data-testid="stSidebar"] {
+                background-color: #141822 !important;
+                color: #f1f5f9 !important;
+            }
+            .stMarkdown, p, span, label {
+                color: #f1f5f9 !important;
+            }
+            .stMetricValue {
+                color: #60a5fa !important;
+            }
+            div[data-testid="stMetric"] {
+                background-color: #1a1f2c !important;
+                border-radius: 8px;
+                padding: 12px;
+                border: 1px solid #2e384d;
+            }
+            .stTabs [data-baseweb="tab-list"] {
+                background-color: #141822 !important;
+                border-radius: 6px;
+            }
+            .stTabs [data-baseweb="tab"] {
+                color: #cbd5e1 !important;
+            }
+            .stTabs [aria-selected="true"] {
+                color: #60a5fa !important;
+                border-bottom-color: #60a5fa !important;
+            }
+        </style>
+        """
+        return base_css + dark_override
+    elif theme_mode == "☀️ Light Mode":
+        light_override = """
+        <style>
+            :root {
+                --background-color: #ffffff;
+                --secondary-background-color: #f8fafc;
+                --text-color: #0f172a;
+            }
+            [data-testid="stAppViewContainer"] {
+                background-color: #ffffff !important;
+                color: #0f172a !important;
+            }
+            [data-testid="stSidebar"] {
+                background-color: #f1f5f9 !important;
+                color: #0f172a !important;
+            }
+            .stMarkdown, p, span, label {
+                color: #0f172a !important;
+            }
+            .stMetricValue {
+                color: #1d4ed8 !important;
+            }
+            div[data-testid="stMetric"] {
+                background-color: #f8fafc !important;
+                border-radius: 8px;
+                padding: 12px;
+                border: 1px solid #e2e8f0;
+            }
+            .stTabs [data-baseweb="tab-list"] {
+                background-color: #f1f5f9 !important;
+                border-radius: 6px;
+            }
+            .stTabs [data-baseweb="tab"] {
+                color: #475569 !important;
+            }
+            .stTabs [aria-selected="true"] {
+                color: #1d4ed8 !important;
+                border-bottom-color: #1d4ed8 !important;
+            }
+        </style>
+        """
+        return base_css + light_override
+    else:
+        # Auto / System theme adapts via standard CSS
+        return base_css
 
 
 @st.cache_data
@@ -91,6 +185,15 @@ with st.sidebar:
     st.caption("Govt. of India DPI Forensic Infrastructure Auditor")
     st.markdown("---")
 
+    st.markdown("### 🎨 Display Theme")
+    theme_mode = st.radio(
+        "Theme Mode",
+        options=["🌓 Auto (System)", "☀️ Light Mode", "🌙 Dark Mode"],
+        index=0,
+        horizontal=False
+    )
+    st.markdown("---")
+
     api_key_input = st.text_input("Gemini API Key (Optional)", type="password", placeholder="Enter key for live vision")
     if api_key_input:
         os.environ["GEMINI_API_KEY"] = api_key_input
@@ -113,6 +216,9 @@ with st.sidebar:
 
     st.markdown("---")
     st.caption("Built for **Code for Communities 2.0** (Google Cloud & GDG)")
+
+# Inject active theme stylesheet
+st.markdown(get_theme_css(theme_mode), unsafe_allow_html=True)
 
 selected_claim = next(c for c in claims_list if c.claim_id == selected_claim_id)
 selected_tender = tender_dict[selected_claim.tender_id]
@@ -214,7 +320,8 @@ with tab2:
     st.write(f"**Claim Evidence Coordinates:** `{selected_claim.photo_lat:.5f}, {selected_claim.photo_lng:.5f}`")
     st.write(f"**Offset Distance:** `{audit_result.distance_from_site_meters:.1f} meters` (Allowed Radius: `{selected_tender.geo_fence_radius_meters}m`)")
 
-    m = folium.Map(location=[selected_tender.target_lat, selected_tender.target_lng], zoom_start=14)
+    map_tiles = "CartoDB dark_matter" if theme_mode == "🌙 Dark Mode" else "CartoDB positron"
+    m = folium.Map(location=[selected_tender.target_lat, selected_tender.target_lng], zoom_start=14, tiles=map_tiles)
 
     # Tender Sanctioned Area
     folium.Marker(
