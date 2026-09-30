@@ -3,6 +3,7 @@
 > **Built for:** *Build with AI: Code for Communities 2.0 (Google Cloud & Hack2Skill)*  
 > **Track:** *AI for Digital Public Infrastructure & Governance*  
 > **Repository:** [github.com/hrlpavan/nirman-drishti](https://github.com/hrlpavan/nirman-drishti)  
+> **Live Web Prototype:** [https://hrlpavan.github.io/nirman-drishti/](https://hrlpavan.github.io/nirman-drishti/)  
 > **Plain-English Explainer:** [PROJECT_EXPLAINER.md](PROJECT_EXPLAINER.md)
 
 ---
