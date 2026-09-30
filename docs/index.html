@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nirman-Drishti | Autonomous Public Works Forensic Auditor</title>
+  <link rel="icon" type="image/png" href="assets/emblem_of_india.png">
+  
+  <!-- Tailwind CSS & Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            govblue: {
+              800: '#0f2a4a',
+              900: '#0a1d33',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet CSS & JS for Interactive Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- jsPDF for direct PDF certificate generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    .dark-map .leaflet-tile-pane {
+      filter: invert(90%) hue-rotate(180deg) brightness(85%) contrast(90%);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: rgba(156, 163, 175, 0.5);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+  <div class="flex flex-col md:flex-row min-h-screen">
+
+    <!-- SIDEBAR -->
+    <aside class="w-full md:w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between shadow-sm">
+      <div>
+        <div class="flex items-center space-x-3 mb-6">
+          <img src="assets/emblem_of_india.png" alt="State Emblem of India" class="h-12 w-auto object-contain">
+          <div>
+            <h1 class="text-xl font-bold text-slate-900 dark:text-white leading-tight">Nirman-Drishti</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Govt. of India DPI Forensic Auditor</p>
+          </div>
+        </div>
+
+        <div class="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-lg border border-blue-100 dark:border-blue-900/40 mb-6">
+          <div class="flex items-center space-x-2 text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1">
+            <i class="fa-solid fa-bolt"></i>
+            <span>Google Cloud & Gemini 2.0</span>
+          </div>
+          <p class="text-xs text-slate-600 dark:text-slate-300">Multimodal vision, geospatial geofencing & BOQ audit engine active.</p>
+        </div>
+
+        <!-- THEME SELECTOR -->
+        <div class="mb-6">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Display Theme</label>
+          <div class="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+            <button id="themeLightBtn" onclick="setTheme('light')" class="py-1.5 px-3 rounded-md text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all">
+              <i class="fa-regular fa-sun"></i>
+              <span>Light</span>
+            </button>
+            <button id="themeDarkBtn" onclick="setTheme('dark')" class="py-1.5 px-3 rounded-md text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all">
+              <i class="fa-regular fa-moon"></i>
+              <span>Dark</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- CLAIM SELECTOR -->
+        <div class="mb-6">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Select Claim to Audit</label>
+          <select id="claimSelect" onchange="loadClaim(this.value)" class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg py-2.5 px-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <option value="CLM-001">🚨 CLM-001: PMGSY Road (Fraud Case)</option>
+            <option value="CLM-002">✅ CLM-002: JJM Solar Pump (Approved)</option>
+            <option value="CLM-003">⚠️ CLM-003: MPLADS Building (Rate Hold)</option>
+          </select>
+        </div>
+
+        <!-- QUICK LINKS -->
+        <div class="space-y-2">
+          <a href="https://github.com/hrlpavan/nirman-drishti" target="_blank" class="flex items-center justify-between p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium transition-all">
+            <span class="flex items-center space-x-2">
+              <i class="fa-brands fa-github text-sm"></i>
+              <span>GitHub Repository</span>
+            </span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-slate-400"></i>
+          </a>
+          <a href="assets/Nirman_Drishti_Presentation_Deck.pdf" target="_blank" class="flex items-center justify-between p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium transition-all">
+            <span class="flex items-center space-x-2">
+              <i class="fa-regular fa-file-pdf text-sm text-red-500"></i>
+              <span>Pitch Deck (PDF)</span>
+            </span>
+            <i class="fa-solid fa-download text-slate-400"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="pt-6 border-t border-slate-200 dark:border-slate-800 text-center">
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Built for <strong>Code for Communities 2.0</strong></p>
+        <p class="text-[10px] text-slate-400 mt-0.5">Google Cloud &bull; GDG &bull; Hack2Skill</p>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col p-6 md:p-8 custom-scrollbar overflow-y-auto">
+      
+      <!-- TOP BANNER -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-200 dark:border-slate-800 mb-6 gap-4">
+        <div>
+          <div class="flex items-center space-x-2 mb-1">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">Track 1: Digital Public Infrastructure & Governance</span>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">Live Production Engine</span>
+          </div>
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">🏛️ Nirman-Drishti (निर्माण-दृष्टि)</h2>
+          <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Autonomous Multimodal Forensic Audit Engine for Public Infrastructure & Constituency Works (MPLADS / PMGSY / JJM)</p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <button onclick="downloadCertificate()" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-semibold py-2 px-4 rounded-lg shadow-sm transition-all">
+            <i class="fa-solid fa-file-shield"></i>
+            <span>Download Signed Certificate (PDF)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KEY METRICS ROW -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sanctioned Budget</p>
+          <p id="metricBudget" class="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mt-1">₹48.0 Lakhs</p>
+        </div>
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tender ID</p>
+          <p id="metricTender" class="text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400 mt-1 truncate">PMGSY-2026-KA-491</p>
+        </div>
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Claimed Milestone</p>
+          <p id="metricClaimed" class="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mt-1">₹48.00 Lakhs</p>
+        </div>
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Questioned / Overcharge</p>
+          <p id="metricFlagged" class="text-xl md:text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">₹48.00 Lakhs</p>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="flex space-x-2 border-b border-slate-200 dark:border-slate-800 mb-6">
+        <button id="tabBtn1" onclick="switchTab(1)" class="py-2.5 px-4 font-semibold text-sm border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 flex items-center space-x-2 transition-all">
+          <i class="fa-solid fa-magnifying-glass-chart"></i>
+          <span>Forensic Audit & Evidence</span>
+        </button>
+        <button id="tabBtn2" onclick="switchTab(2)" class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center space-x-2 transition-all">
+          <i class="fa-solid fa-map-location-dot"></i>
+          <span>Geospatial & Site Geofencing</span>
+        </button>
+        <button id="tabBtn3" onclick="switchTab(3)" class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center space-x-2 transition-all">
+          <i class="fa-solid fa-table-list"></i>
+          <span>BOQ Rate Reconciliation</span>
+        </button>
+      </div>
+
+      <!-- TAB 1 CONTENT -->
+      <div id="tabContent1" class="space-y-6">
+        
+        <!-- VERDICT BANNER -->
+        <div id="verdictBanner" class="p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span id="verdictBadge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">REJECTED</span>
+              <span id="verdictTitle" class="text-lg font-bold">CRITICAL FRAUD ALERT — PAYMENT BLOCKED</span>
+            </div>
+            <p id="verdictSummary" class="text-xs md:text-sm mt-1.5 opacity-90 leading-relaxed"></p>
+          </div>
+          <div class="text-right">
+            <span class="text-xs font-medium opacity-75 uppercase">Risk Score</span>
+            <p id="verdictRisk" class="text-2xl md:text-3xl font-extrabold"></p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- LEFT: PHOTO EVIDENCE -->
+          <div class="lg:col-span-5 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center justify-between">
+              <span>Contractor Site Evidence</span>
+              <span id="evidenceFilename" class="text-xs lowercase text-blue-600 dark:text-blue-400 font-mono"></span>
+            </h3>
+            <div class="relative bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 aspect-video flex items-center justify-center">
+              <img id="evidenceImage" src="" alt="Contractor Site Photo" class="w-full h-full object-cover">
+              <span id="evidenceTag" class="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-sm text-white text-[11px] px-2.5 py-1 rounded-md font-mono"></span>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2 text-xs">
+              <div class="flex justify-between"><span class="text-slate-500">Project:</span> <span id="infoProject" class="font-semibold text-right"></span></div>
+              <div class="flex justify-between"><span class="text-slate-500">Department:</span> <span id="infoDept" class="font-semibold text-right"></span></div>
+              <div class="flex justify-between"><span class="text-slate-500">Contractor:</span> <span id="infoContractor" class="font-semibold text-right"></span></div>
+              <div class="flex justify-between"><span class="text-slate-500">MB Reference:</span> <span id="infoMB" class="font-mono font-semibold text-right"></span></div>
+            </div>
+          </div>
+
+          <!-- RIGHT: FORENSIC DISCREPANCY LIST -->
+          <div class="lg:col-span-7 bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
+              Multimodal AI Forensic Inspection Breakdown
+            </h3>
+
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700">
+                <span class="text-[11px] text-slate-500 uppercase font-semibold">Identified Physical Stage</span>
+                <p id="forensicStage" class="text-xs md:text-sm font-bold text-slate-900 dark:text-white mt-0.5"></p>
+              </div>
+              <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700">
+                <span class="text-[11px] text-slate-500 uppercase font-semibold">Geofence Status</span>
+                <p id="forensicGeofence" class="text-xs md:text-sm font-bold mt-0.5"></p>
+              </div>
+            </div>
+
+            <!-- OBSERVATIONS -->
+            <div class="mb-4">
+              <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Visual Observations (Gemini 2.0):</h4>
+              <ul id="observationsList" class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 list-disc list-inside"></ul>
+            </div>
+
+            <!-- DISCREPANCIES -->
+            <div class="flex-1">
+              <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Detected Non-Conformances & Overcharges:</h4>
+              <div id="discrepanciesContainer" class="space-y-2"></div>
+            </div>
+
+            <!-- CRYPTO SEAL FOOTER -->
+            <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+              <span class="flex items-center space-x-1.5 truncate">
+                <i class="fa-solid fa-lock text-emerald-600"></i>
+                <span id="cryptoHash" class="truncate"></span>
+              </span>
+              <span class="text-slate-400 text-[10px] uppercase">SHA-256 Validated</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- TAB 2: GEOSPATIAL MAP -->
+      <div id="tabContent2" class="hidden space-y-4">
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-2">
+            <div>
+              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Hyperlocal Geofence Ground-Truthing</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-400">Verifying contractor camera GPS coordinates against registered tender bounds.</p>
+            </div>
+            <div class="flex items-center space-x-4 text-xs font-medium">
+              <span class="flex items-center space-x-1.5"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> <span>Sanctioned Tender Site</span></span>
+              <span class="flex items-center space-x-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> <span>Verified Photo</span></span>
+              <span class="flex items-center space-x-1.5"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> <span>Geofence Breach (>500m)</span></span>
+            </div>
+          </div>
+
+          <div id="map" class="w-full h-96 rounded-xl border border-slate-200 dark:border-slate-700 z-0"></div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 text-xs">
+            <div>
+              <span class="text-slate-500">Sanctioned Tender Target:</span>
+              <p id="mapTenderCoords" class="font-mono font-semibold text-slate-800 dark:text-slate-200 mt-0.5"></p>
+            </div>
+            <div>
+              <span class="text-slate-500">Photo Evidence Coordinates:</span>
+              <p id="mapPhotoCoords" class="font-mono font-semibold text-slate-800 dark:text-slate-200 mt-0.5"></p>
+            </div>
+            <div>
+              <span class="text-slate-500">Spatial Deviation:</span>
+              <p id="mapDistance" class="font-mono font-semibold text-slate-800 dark:text-slate-200 mt-0.5"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: BOQ RECONCILIATION -->
+      <div id="tabContent3" class="hidden space-y-4">
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Bill of Quantities (BOQ) Rate Auditor</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-400">Auditing claimed unit rates against State Schedule of Rates (SoR) and sanction ceilings.</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 uppercase font-semibold">
+                <tr>
+                  <th class="py-3 px-3">Item Code</th>
+                  <th class="py-3 px-3">Description</th>
+                  <th class="py-3 px-3 text-right">Claimed Qty</th>
+                  <th class="py-3 px-3 text-right">Sanctioned Qty</th>
+                  <th class="py-3 px-3 text-right">Billed Rate</th>
+                  <th class="py-3 px-3 text-right">Govt. SoR Rate</th>
+                  <th class="py-3 px-3 text-right">Total Claimed</th>
+                  <th class="py-3 px-3 text-center">Audit Status</th>
+                </tr>
+              </thead>
+              <tbody id="boqTableBody" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <footer class="mt-auto pt-8 pb-4 text-center text-xs text-slate-400 border-t border-slate-200 dark:border-slate-800">
+        <p>Nirman-Drishti &bull; Digital Public Infrastructure for Indian Public Works & Bull; Powered by Google Cloud & Gemini 2.0</p>
+      </footer>
+    </main>
+
+  </div>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    const CLAIMS_DATA = {
+      "CLM-001": {
+        id: "CLM-2026-001",
+        tender_id: "PMGSY-2026-KA-491",
+        project_name: "Upgradation of Rural Link Road from Honnavar to Karki Village (1.8 km)",
+        department: "Public Works Department (PWD)",
+        scheme: "PMGSY (Pradhan Mantri Gram Sadak Yojana)",
+        contractor: "Shree Balaji Infra Projects Pvt Ltd",
+        budget_lakhs: "₹48.0 Lakhs",
+        claimed_lakhs: "₹48.00 Lakhs",
+        flagged_lakhs: "₹48.00 Lakhs",
+        mb_ref: "MB-PWD-KA/2026/Vol-IV/Pg-112",
+        photo_filename: "road_wbm_unpaved.jpg",
+        image_src: "assets/road_wbm_unpaved.jpg",
+        verdict: "REJECTED",
+        verdict_title: "CRITICAL FRAUD ALERT — DISBURSEMENT BLOCKED",
+        risk_score: "100.0/100",
+        summary: "Claim rejected due to 4 critical non-conformances: 11.5km geofence breach, missing bituminous wear coat, ₹88k/MT rate inflation on bitumen, and ₹2.25L phantom item. Public money fully protected.",
+        stage_detected: "Compacted WBM Gravel Base (Unpaved)",
+        geofence_status: "VIOLATION (11,780m away)",
+        geofence_verified: false,
+        observations: [
+          "Compacted Water Bound Macadam (WBM) coarse aggregate sub-base visible.",
+          "Surface dress / Bituminous Concrete (BC) wearing course claimed as 100% complete is physically absent.",
+          "EXIF coordinates locate evidence 11.7 km outside sanctioned tender boundary."
+        ],
+        discrepancies: [
+          { cat: "GEO_TAMPERING", sev: "CRITICAL", desc: "Photo coordinates (14.3650, 74.5200) are 11,780m away from site. Exceeds 500m geofence perimeter.", amt: "₹48,00,000.00" },
+          { cat: "VISION_MISMATCH", sev: "CRITICAL", desc: "Photographic evidence shows raw gravel. Bituminous wearing coat claimed 100% finished is absent.", amt: "₹21,60,000.00" },
+          { cat: "RATE_INFLATION", sev: "HIGH", desc: "Bitumen 60/70 billed at ₹88,000/MT vs approved SoR rate of ₹65,000/MT (Excess: ₹23,000/MT).", amt: "₹25,30,000.00" },
+          { cat: "QUANTITY_OVERCLAIM", sev: "CRITICAL", desc: "Billed 110 MT bitumen exceeds sanctioned ceiling 75 MT by 35 MT.", amt: "₹22,75,000.00" },
+          { cat: "QUANTITY_OVERCLAIM", sev: "CRITICAL", desc: "Unsanctioned / Phantom item 'PHANTOM-999' (Paver blocks). Not in approved tender BOQ.", amt: "₹2,25,000.00" }
+        ],
+        crypto_hash: "8e4077c677cfde0a130784e47cb7ce1de6c3ff04a427c872722c576d12fb0e8f",
+        tender_lat: 14.2812,
+        tender_lng: 74.4531,
+        photo_lat: 14.3650,
+        photo_lng: 74.5200,
+        distance_meters: "11,780.4m",
+        boq_items: [
+          { code: "R-101", desc: "Earthwork excavation & sub-grade prep", c_qty: "3,500.0 cum", s_qty: "3,500.0 cum", b_rate: "₹180.00", s_rate: "₹180.00", total: "₹6,30,000.00", status: "MATCH" },
+          { code: "R-102", desc: "Granular Sub-Base (GSB) 150mm", c_qty: "1,800.0 cum", s_qty: "1,800.0 cum", b_rate: "₹650.00", s_rate: "₹650.00", total: "₹11,70,000.00", status: "MATCH" },
+          { code: "R-103", desc: "Water Bound Macadam (WBM) Gr-III", c_qty: "1,200.0 cum", s_qty: "1,200.0 cum", b_rate: "₹820.00", s_rate: "₹820.00", total: "₹9,84,000.00", status: "MATCH" },
+          { code: "R-104", desc: "Bituminous Concrete (BC) 25mm", c_qty: "110.0 MT", s_qty: "75.0 MT", b_rate: "₹88,000.00", s_rate: "₹65,000.00", total: "₹96,80,000.00", status: "OVERCHARGE" },
+          { code: "PHANTOM-999", desc: "Roadside Paver Blocks (Unsanctioned)", c_qty: "500.0 m", s_qty: "0.0 m", b_rate: "₹450.00", s_rate: "N/A", total: "₹2,25,000.00", status: "PHANTOM" }
+        ]
+      },
+      "CLM-002": {
+        id: "CLM-2026-002",
+        tender_id: "JJM-2026-MH-102",
+        project_name: "Solar Dual Pump Borehole & Overhead Storage at PHC Shirwal",
+        department: "Rural Water Supply & Sanitation Department",
+        scheme: "Jal Jeevan Mission (JJM)",
+        contractor: "Apex Green Power Systems LLP",
+        budget_lakhs: "₹14.5 Lakhs",
+        claimed_lakhs: "₹14.50 Lakhs",
+        flagged_lakhs: "₹0.00 Lakhs",
+        mb_ref: "MB-JJM-MH/2026/Vol-I/Pg-48",
+        photo_filename: "solar_pump_verified.jpg",
+        image_src: "assets/solar_pump_verified.jpg",
+        verdict: "APPROVED",
+        verdict_title: "SAFE FOR DISBURSEMENT — AUDIT VERIFIED",
+        risk_score: "0.0/100",
+        summary: "Site visual evidence matches claimed milestone. Coordinates verified within 28.3m of sanctioned tender site. All billed rates strictly adhere to approved State Schedule of Rates. Recommended for automated treasury disbursement.",
+        stage_detected: "Fully Commissioned & Operational",
+        geofence_status: "VERIFIED (Within 28.3m)",
+        geofence_verified: true,
+        observations: [
+          "5HP solar panel array with MNRE approved charge controller confirmed on site.",
+          "Submersible borehole pump and elevated 10kL HDPE tank installed & fully operational.",
+          "EXIF coordinates match within 28 meters of rural health center perimeter."
+        ],
+        discrepancies: [],
+        crypto_hash: "a49df3328e19b88cf1128c99276d4e519c882103842183cfa119934bb0124310",
+        tender_lat: 18.1345,
+        tender_lng: 73.9876,
+        photo_lat: 18.1347,
+        photo_lng: 73.9878,
+        distance_meters: "28.3m",
+        boq_items: [
+          { code: "W-201", desc: "Borewell drilling 150mm dia to 120m", c_qty: "120.0 m", s_qty: "120.0 m", b_rate: "₹1,250.00", s_rate: "₹1,250.00", total: "₹1,50,000.00", status: "MATCH" },
+          { code: "W-202", desc: "5 HP Solar Submersible Pump & Controller", c_qty: "1.0 set", s_qty: "1.0 set", b_rate: "₹3,80,000.00", s_rate: "₹3,80,000.00", total: "₹3,80,000.00", status: "MATCH" },
+          { code: "W-203", desc: "Elevated HDPE Storage Tank 10,000L", c_qty: "1.0 nos", s_qty: "1.0 nos", b_rate: "₹4,20,000.00", s_rate: "₹4,20,000.00", total: "₹4,20,000.00", status: "MATCH" },
+          { code: "W-204", desc: "Distribution network & chlorination doser", c_qty: "800.0 m", s_qty: "800.0 m", b_rate: "₹625.00", s_rate: "₹625.00", total: "₹5,00,000.00", status: "MATCH" }
+        ]
+      },
+      "CLM-003": {
+        id: "CLM-2026-003",
+        tender_id: "MPLADS-2026-DL-088",
+        project_name: "Model Community Skill & Anganwadi Center, Najafgarh",
+        department: "Municipal Corporation of Delhi (MCD)",
+        scheme: "MPLADS (Members of Parliament Local Area Development)",
+        contractor: "Capital Urban Builders Ltd",
+        budget_lakhs: "₹65.0 Lakhs",
+        claimed_lakhs: "₹32.50 Lakhs",
+        flagged_lakhs: "₹3.15 Lakhs",
+        mb_ref: "MB-MCD/2026/Najaf/Pg-85",
+        photo_filename: "building_frame_stage.jpg",
+        image_src: "assets/building_frame_stage.jpg",
+        verdict: "VIGILANCE_HOLD",
+        verdict_title: "WITHHELD FOR EXECUTIVE SCRUTINY (Rate Inflation)",
+        risk_score: "15.0/100",
+        summary: "Physical RCC frame casting verified on site within bounds. However, contractor inflated RCC M25 concrete rate from ₹6,400 to ₹8,200/cum. Overcharge of ₹3.15 Lakhs withheld pending Executive Engineer review.",
+        stage_detected: "RCC Frame & Column Superstructure (Milestone 1)",
+        geofence_status: "VERIFIED (Within 31.4m)",
+        geofence_verified: true,
+        observations: [
+          "Reinforced cement concrete column framework verified in accordance with Milestone 1.",
+          "GPS coordinates match within 31.4m of Najafgarh ward parcel.",
+          "Rate disparity flagged on structural concrete line items."
+        ],
+        discrepancies: [
+          { cat: "RATE_INFLATION", sev: "HIGH", desc: "Rate Inflation for RCC M25: Billed at ₹8,200.00/cum vs SoR rate ₹6,400.00/cum (Excess: ₹1,800/cum).", amt: "₹3,15,000.00" }
+        ],
+        crypto_hash: "55fce21890cd123490bca87123ef617834510091238472619082341908234111",
+        tender_lat: 28.6092,
+        tender_lng: 76.9854,
+        photo_lat: 28.6094,
+        photo_lng: 76.9856,
+        distance_meters: "31.4m",
+        boq_items: [
+          { code: "C-301", desc: "Reinforced Cement Concrete (RCC M25)", c_qty: "175.0 cum", s_qty: "350.0 cum", b_rate: "₹8,200.00", s_rate: "₹6,400.00", total: "₹14,35,000.00", status: "OVERCHARGE" },
+          { code: "C-303", desc: "TMT FE-550D Reinforcement Steel", c_qty: "16.0 MT", s_qty: "32.0 MT", b_rate: "₹70,000.00", s_rate: "₹70,000.00", total: "₹11,20,000.00", status: "MATCH" }
+        ]
+      }
+    };
+
+    let activeClaim = CLAIMS_DATA["CLM-001"];
+    let map = null;
+    let markersLayer = null;
+
+    function setTheme(mode) {
+      const html = document.documentElement;
+      const lightBtn = document.getElementById("themeLightBtn");
+      const darkBtn = document.getElementById("themeDarkBtn");
+
+      if (mode === 'dark') {
+        html.classList.add('dark');
+        darkBtn.classList.add('bg-white', 'text-slate-900', 'shadow-sm', 'dark:bg-slate-700', 'dark:text-white');
+        lightBtn.classList.remove('bg-white', 'text-slate-900', 'shadow-sm', 'dark:bg-slate-700', 'dark:text-white');
+      } else {
+        html.classList.remove('dark');
+        lightBtn.classList.add('bg-white', 'text-slate-900', 'shadow-sm', 'dark:bg-slate-700', 'dark:text-white');
+        darkBtn.classList.remove('bg-white', 'text-slate-900', 'shadow-sm', 'dark:bg-slate-700', 'dark:text-white');
+      }
+
+      if (map) {
+        const mapContainer = document.getElementById("map");
+        if (mode === 'dark') {
+          mapContainer.classList.add("dark-map");
+        } else {
+          mapContainer.classList.remove("dark-map");
+        }
+      }
+    }
+
+    function switchTab(tabId) {
+      [1, 2, 3].forEach(id => {
+        const content = document.getElementById(`tabContent${id}`);
+        const btn = document.getElementById(`tabBtn${id}`);
+        if (id === tabId) {
+          content.classList.remove("hidden");
+          btn.classList.add("border-blue-600", "text-blue-600", "dark:text-blue-400");
+          btn.classList.remove("border-transparent", "text-slate-500", "dark:text-slate-400");
+        } else {
+          content.classList.add("hidden");
+          btn.classList.remove("border-blue-600", "text-blue-600", "dark:text-blue-400");
+          btn.classList.add("border-transparent", "text-slate-500", "dark:text-slate-400");
+        }
+      });
+
+      if (tabId === 2 && map) {
+        setTimeout(() => map.invalidateSize(), 150);
+      }
+    }
+
+    function loadClaim(key) {
+      activeClaim = CLAIMS_DATA[key];
+      renderClaim();
+    }
+
+    function renderClaim() {
+      const c = activeClaim;
+
+      document.getElementById("metricBudget").innerText = c.budget_lakhs;
+      document.getElementById("metricTender").innerText = c.tender_id;
+      document.getElementById("metricClaimed").innerText = c.claimed_lakhs;
+      document.getElementById("metricFlagged").innerText = c.flagged_lakhs;
+
+      // Verdict Banner
+      const banner = document.getElementById("verdictBanner");
+      const badge = document.getElementById("verdictBadge");
+      const title = document.getElementById("verdictTitle");
+      const summary = document.getElementById("verdictSummary");
+      const risk = document.getElementById("verdictRisk");
+
+      risk.innerText = c.risk_score;
+      summary.innerText = c.summary;
+
+      if (c.verdict === "APPROVED") {
+        banner.className = "p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800/50";
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-600 text-white";
+        badge.innerText = "APPROVED";
+        title.innerText = c.verdict_title;
+        risk.className = "text-2xl md:text-3xl font-extrabold text-emerald-700 dark:text-emerald-400";
+      } else if (c.verdict === "VIGILANCE_HOLD") {
+        banner.className = "p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-800/50";
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-600 text-white";
+        badge.innerText = "HOLD";
+        title.innerText = c.verdict_title;
+        risk.className = "text-2xl md:text-3xl font-extrabold text-amber-700 dark:text-amber-400";
+      } else {
+        banner.className = "p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 bg-rose-50 text-rose-900 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800/50";
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-600 text-white";
+        badge.innerText = "REJECTED";
+        title.innerText = c.verdict_title;
+        risk.className = "text-2xl md:text-3xl font-extrabold text-rose-700 dark:text-rose-400";
+      }
+
+      // Evidence & Info
+      document.getElementById("evidenceFilename").innerText = c.photo_filename;
+      document.getElementById("evidenceImage").src = c.image_src;
+      document.getElementById("evidenceTag").innerText = `Evidence: ${c.id}`;
+      document.getElementById("infoProject").innerText = c.project_name;
+      document.getElementById("infoDept").innerText = c.department;
+      document.getElementById("infoContractor").innerText = c.contractor;
+      document.getElementById("infoMB").innerText = c.mb_ref;
+
+      // Forensic specs
+      document.getElementById("forensicStage").innerText = c.stage_detected;
+      const geoEl = document.getElementById("forensicGeofence");
+      geoEl.innerText = c.geofence_status;
+      geoEl.className = c.geofence_verified ? "text-xs md:text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5" : "text-xs md:text-sm font-bold text-rose-600 dark:text-rose-400 mt-0.5";
+
+      // Observations
+      const obsContainer = document.getElementById("observationsList");
+      obsContainer.innerHTML = c.observations.map(o => `<li>${o}</li>`).join("");
+
+      // Discrepancies
+      const discContainer = document.getElementById("discrepanciesContainer");
+      if (c.discrepancies.length === 0) {
+        discContainer.innerHTML = `<div class="p-3 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-medium flex items-center space-x-2"><i class="fa-solid fa-circle-check"></i><span>All line items and parameters strictly adhere to sanction guidelines.</span></div>`;
+      } else {
+        discContainer.innerHTML = c.discrepancies.map(d => `
+          <div class="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-xs flex items-start justify-between gap-3">
+            <div>
+              <span class="inline-block px-1.5 py-0.5 text-[10px] font-bold rounded ${d.sev === 'CRITICAL' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'} mr-1.5">${d.sev}</span>
+              <span class="font-medium text-slate-800 dark:text-slate-200">${d.desc}</span>
+            </div>
+            <span class="font-bold text-rose-600 dark:text-rose-400 whitespace-nowrap">${d.amt}</span>
+          </div>
+        `).join("");
+      }
+
+      document.getElementById("cryptoHash").innerText = `SHA256: ${c.crypto_hash}`;
+
+      // Update Map Coords
+      document.getElementById("mapTenderCoords").innerText = `${c.tender_lat.toFixed(4)}, ${c.tender_lng.toFixed(4)}`;
+      document.getElementById("mapPhotoCoords").innerText = `${c.photo_lat.toFixed(4)}, ${c.photo_lng.toFixed(4)}`;
+      document.getElementById("mapDistance").innerText = `${c.distance_meters} (Allowed: 500m)`;
+
+      // Update BOQ Table
+      const boqBody = document.getElementById("boqTableBody");
+      boqBody.innerHTML = c.boq_items.map(i => {
+        let badgeClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300";
+        if (i.status === "OVERCHARGE") badgeClass = "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300";
+        if (i.status === "PHANTOM") badgeClass = "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300";
+
+        return `
+          <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+            <td class="py-2.5 px-3 font-mono font-bold">${i.code}</td>
+            <td class="py-2.5 px-3 font-medium">${i.desc}</td>
+            <td class="py-2.5 px-3 text-right font-mono">${i.c_qty}</td>
+            <td class="py-2.5 px-3 text-right font-mono">${i.s_qty}</td>
+            <td class="py-2.5 px-3 text-right font-mono font-semibold">${i.b_rate}</td>
+            <td class="py-2.5 px-3 text-right font-mono">${i.s_rate}</td>
+            <td class="py-2.5 px-3 text-right font-mono font-bold">${i.total}</td>
+            <td class="py-2.5 px-3 text-center">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass}">${i.status}</span>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      // Render Leaflet Map
+      updateLeafletMap();
+    }
+
+    function initMap() {
+      map = L.map('map').setView([activeClaim.tender_lat, activeClaim.tender_lng], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+      markersLayer = L.layerGroup().addTo(map);
+    }
+
+    function updateLeafletMap() {
+      if (!map) return;
+      markersLayer.clearLayers();
+
+      const c = activeClaim;
+      const tenderLatLng = [c.tender_lat, c.tender_lng];
+      const photoLatLng = [c.photo_lat, c.photo_lng];
+
+      // Tender Marker & Circle
+      L.marker(tenderLatLng, { title: "Sanctioned Site" })
+        .bindPopup(`<b>Sanctioned Tender Site</b><br>${c.project_name}`)
+        .addTo(markersLayer);
+
+      L.circle(tenderLatLng, {
+        color: '#2563eb',
+        fillColor: '#3b82f6',
+        fillOpacity: 0.15,
+        radius: 500
+      }).bindTooltip("Authorized Perimeter (500m)").addTo(markersLayer);
+
+      // Photo Marker
+      const photoColor = c.geofence_verified ? '#10b981' : '#ef4444';
+      const circleMarker = L.circleMarker(photoLatLng, {
+        color: photoColor,
+        fillColor: photoColor,
+        fillOpacity: 0.9,
+        radius: 8
+      }).bindPopup(`<b>Evidence Location</b><br>${c.distance_meters} from tender site`).addTo(markersLayer);
+
+      // Connecting line
+      L.polyline([tenderLatLng, photoLatLng], {
+        color: photoColor,
+        weight: 2,
+        dashArray: '5, 8'
+      }).addTo(markersLayer);
+
+      const bounds = L.latLngBounds([tenderLatLng, photoLatLng]);
+      map.fitBounds(bounds, { padding: [40, 40] });
+    }
+
+    function downloadCertificate() {
+      const c = activeClaim;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.setTextColor(15, 42, 74);
+      doc.text("GOVERNMENT OF INDIA", 105, 20, { align: "center" });
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(70, 80, 95);
+      doc.text("STATE PUBLIC WORKS DEPARTMENT • DIRECTORATE OF DIGITAL VIGILANCE", 105, 26, { align: "center" });
+      doc.setFont("helvetica", "bold");
+      doc.text("NIRMAN-DRISHTI AUTONOMOUS FORENSIC INSPECTION CERTIFICATE", 105, 32, { align: "center" });
+
+      // Verdict box
+      if (c.verdict === "APPROVED") {
+        doc.setFillColor(27, 94, 32);
+      } else if (c.verdict === "VIGILANCE_HOLD") {
+        doc.setFillColor(230, 81, 0);
+      } else {
+        doc.setFillColor(183, 28, 28);
+      }
+      doc.rect(15, 38, 180, 10, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(11);
+      doc.text(`VERDICT: ${c.verdict} (Risk Score: ${c.risk_score})`, 105, 45, { align: "center" });
+
+      // Details
+      doc.setTextColor(20, 20, 20);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      let y = 58;
+
+      doc.text(`Audit ID: ${c.id}`, 20, y);
+      doc.text(`Tender: ${c.tender_id}`, 110, y);
+      y += 7;
+      doc.text(`Project: ${c.project_name.substring(0, 45)}...`, 20, y);
+      y += 7;
+      doc.text(`Department: ${c.department}`, 20, y);
+      doc.text(`Scheme: ${c.scheme}`, 110, y);
+      y += 7;
+      doc.text(`Contractor: ${c.contractor}`, 20, y);
+      doc.text(`MB Ref: ${c.mb_ref}`, 110, y);
+      y += 7;
+      doc.text(`Claimed: Rs. ${c.claimed_lakhs}`, 20, y);
+      doc.text(`Questioned: Rs. ${c.flagged_lakhs}`, 110, y);
+      y += 7;
+      doc.text(`Geofence: ${c.geofence_status}`, 20, y);
+      doc.text(`Stage: ${c.stage_detected}`, 110, y);
+
+      y += 14;
+      doc.setFont("helvetica", "bold");
+      doc.text("EXECUTIVE RECOMMENDATION:", 20, y);
+      y += 6;
+      doc.setFont("helvetica", "normal");
+      const splitSummary = doc.splitTextToSize(c.summary, 170);
+      doc.text(splitSummary, 20, y);
+
+      y += (splitSummary.length * 6) + 12;
+      doc.setFont("helvetica", "bold");
+      doc.text("DIGITAL TAMPER-EVIDENT AUDIT SEAL (DPI / DEPA / DIGILOCKER):", 20, y);
+      y += 6;
+      doc.setFont("courier", "normal");
+      doc.setFontSize(8.5);
+      doc.text(`SHA256: ${c.crypto_hash}`, 20, y);
+
+      doc.save(`Audit_Certificate_${c.id}.pdf`);
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTheme('light');
+      initMap();
+      renderClaim();
+    });
+  </script>
+</body>
+</html>
