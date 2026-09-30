@@ -112,6 +112,9 @@ def get_theme_css(theme_mode: str) -> str:
                 color: #60a5fa !important;
                 border-bottom-color: #60a5fa !important;
             }
+            .leaflet-tile-pane {
+                filter: invert(90%) hue-rotate(180deg) brightness(85%) contrast(90%);
+            }
         </style>
         """
         return base_css + dark_override
@@ -264,7 +267,7 @@ with tab1:
         st.markdown("#### 📸 Contractor Submitted Site Photo")
         if image_path and os.path.exists(image_path):
             img = Image.open(image_path)
-            st.image(img, use_container_width=True, caption=f"Evidence: {selected_claim.photo_filename}")
+            st.image(img, width="stretch", caption=f"Evidence: {selected_claim.photo_filename}")
         else:
             st.info("No photographic evidence attached to this claim.")
 
@@ -310,7 +313,7 @@ with tab1:
                 data=pdf_bytes,
                 file_name=f"Audit_Certificate_{audit_result.audit_id}.pdf",
                 mime="application/pdf",
-                use_container_width=True
+                width="stretch"
             )
         st.caption(f"🔒 Tamper-Proof Cryptographic Seal: `{audit_result.audit_hash}`")
 
@@ -320,8 +323,7 @@ with tab2:
     st.write(f"**Claim Evidence Coordinates:** `{selected_claim.photo_lat:.5f}, {selected_claim.photo_lng:.5f}`")
     st.write(f"**Offset Distance:** `{audit_result.distance_from_site_meters:.1f} meters` (Allowed Radius: `{selected_tender.geo_fence_radius_meters}m`)")
 
-    map_tiles = "CartoDB dark_matter" if theme_mode == "🌙 Dark Mode" else "CartoDB positron"
-    m = folium.Map(location=[selected_tender.target_lat, selected_tender.target_lng], zoom_start=14, tiles=map_tiles)
+    m = folium.Map(location=[selected_tender.target_lat, selected_tender.target_lng], zoom_start=14, tiles="OpenStreetMap")
 
     # Tender Sanctioned Area
     folium.Marker(
@@ -391,7 +393,7 @@ with tab3:
                 "Status": "🚨 Phantom Item"
             })
 
-    st.dataframe(boq_table_data, use_container_width=True)
+    st.dataframe(boq_table_data, width="stretch")
 
 # Footer
 st.markdown("---")
