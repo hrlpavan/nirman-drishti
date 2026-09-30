@@ -25,144 +25,217 @@ st.set_page_config(
 
 # Theme state management & custom styling
 def get_theme_css(theme_mode: str) -> str:
-    # Base adaptive styling using Streamlit native variables
-    base_css = """
-    <style>
-        .main-header {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--text-color, #1e293b);
-            margin-bottom: 0.2rem;
-        }
-        .sub-header {
-            font-size: 1.05rem;
-            color: var(--text-color, #475569);
-            opacity: 0.85;
-            margin-bottom: 1.5rem;
-        }
-        .metric-card {
-            background-color: var(--secondary-background-color, #f8fafc);
-            color: var(--text-color, #0f172a);
-            border-radius: 8px;
-            padding: 16px;
-            border: 1px solid rgba(128, 128, 128, 0.2);
-        }
-        .status-badge-approved {
-            background-color: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-weight: 600;
-            border: 1px solid rgba(34, 197, 94, 0.35);
-        }
-        .status-badge-rejected {
-            background-color: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-weight: 600;
-            border: 1px solid rgba(239, 68, 68, 0.35);
-        }
-        .status-badge-vigilance {
-            background-color: rgba(249, 115, 22, 0.2);
-            color: #f97316;
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-weight: 600;
-            border: 1px solid rgba(249, 115, 22, 0.35);
-        }
-    </style>
-    """
     if theme_mode == "🌙 Dark Mode":
-        dark_override = """
-        <style>
-            :root {
-                --background-color: #0e1117;
-                --secondary-background-color: #1a1f2c;
-                --text-color: #f1f5f9;
-            }
-            [data-testid="stAppViewContainer"] {
-                background-color: #0e1117 !important;
-                color: #f1f5f9 !important;
-            }
-            [data-testid="stSidebar"] {
-                background-color: #141822 !important;
-                color: #f1f5f9 !important;
-            }
-            .stMarkdown, p, span, label {
-                color: #f1f5f9 !important;
-            }
-            .stMetricValue {
-                color: #60a5fa !important;
-            }
-            div[data-testid="stMetric"] {
-                background-color: #1a1f2c !important;
-                border-radius: 8px;
-                padding: 12px;
-                border: 1px solid #2e384d;
-            }
-            .stTabs [data-baseweb="tab-list"] {
-                background-color: #141822 !important;
-                border-radius: 6px;
-            }
-            .stTabs [data-baseweb="tab"] {
-                color: #cbd5e1 !important;
-            }
-            .stTabs [aria-selected="true"] {
-                color: #60a5fa !important;
-                border-bottom-color: #60a5fa !important;
-            }
-            .leaflet-tile-pane {
-                filter: invert(90%) hue-rotate(180deg) brightness(85%) contrast(90%);
-            }
-        </style>
-        """
-        return base_css + dark_override
+        return """<style>
+/* App background & text */
+.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+    background-color: #0e1117 !important;
+    color: #f1f5f9 !important;
+}
+header[data-testid="stHeader"] {
+    background-color: #0e1117 !important;
+}
+[data-testid="stSidebar"], [data-testid="stSidebar"] > div:first-child {
+    background-color: #161b22 !important;
+    color: #f1f5f9 !important;
+}
+p, span, label, h1, h2, h3, h4, h5, h6, .stMarkdown {
+    color: #f1f5f9 !important;
+}
+.main-header {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #f1f5f9 !important;
+    margin-bottom: 0.2rem;
+}
+.sub-header {
+    font-size: 1.05rem;
+    color: #94a3b8 !important;
+    margin-bottom: 1.5rem;
+}
+div[data-testid="stMetric"] {
+    background-color: #1a1f2c !important;
+    border: 1px solid #2e384d !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+}
+div[data-testid="stMetric"] label {
+    color: #94a3b8 !important;
+}
+div[data-testid="stMetricValue"] {
+    color: #60a5fa !important;
+}
+.stTabs [data-baseweb="tab-list"] {
+    background-color: #141822 !important;
+    border-radius: 8px !important;
+    border: 1px solid #2e384d !important;
+}
+.stTabs [data-baseweb="tab"] {
+    color: #94a3b8 !important;
+}
+.stTabs [aria-selected="true"] {
+    color: #60a5fa !important;
+    border-bottom: 2px solid #60a5fa !important;
+}
+.leaflet-tile-pane {
+    filter: invert(90%) hue-rotate(180deg) brightness(85%) contrast(90%);
+}
+.status-badge-approved {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-weight: 600;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+}
+.status-badge-rejected {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-weight: 600;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+}
+.status-badge-vigilance {
+    background-color: rgba(249, 115, 22, 0.2);
+    color: #f97316;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-weight: 600;
+    border: 1px solid rgba(249, 115, 22, 0.35);
+}
+</style>"""
     elif theme_mode == "☀️ Light Mode":
-        light_override = """
-        <style>
-            :root {
-                --background-color: #ffffff;
-                --secondary-background-color: #f8fafc;
-                --text-color: #0f172a;
-            }
-            [data-testid="stAppViewContainer"] {
-                background-color: #ffffff !important;
-                color: #0f172a !important;
-            }
-            [data-testid="stSidebar"] {
-                background-color: #f1f5f9 !important;
-                color: #0f172a !important;
-            }
-            .stMarkdown, p, span, label {
-                color: #0f172a !important;
-            }
-            .stMetricValue {
-                color: #1d4ed8 !important;
-            }
-            div[data-testid="stMetric"] {
-                background-color: #f8fafc !important;
-                border-radius: 8px;
-                padding: 12px;
-                border: 1px solid #e2e8f0;
-            }
-            .stTabs [data-baseweb="tab-list"] {
-                background-color: #f1f5f9 !important;
-                border-radius: 6px;
-            }
-            .stTabs [data-baseweb="tab"] {
-                color: #475569 !important;
-            }
-            .stTabs [aria-selected="true"] {
-                color: #1d4ed8 !important;
-                border-bottom-color: #1d4ed8 !important;
-            }
-        </style>
-        """
-        return base_css + light_override
+        return """<style>
+/* App background & text */
+.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+header[data-testid="stHeader"] {
+    background-color: #ffffff !important;
+}
+[data-testid="stSidebar"], [data-testid="stSidebar"] > div:first-child {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+p, span, label, h1, h2, h3, h4, h5, h6, .stMarkdown {
+    color: #0f172a !important;
+}
+.main-header {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #0f2a4a !important;
+    margin-bottom: 0.2rem;
+}
+.sub-header {
+    font-size: 1.05rem;
+    color: #475569 !important;
+    margin-bottom: 1.5rem;
+}
+div[data-testid="stMetric"] {
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+}
+div[data-testid="stMetric"] label {
+    color: #475569 !important;
+}
+div[data-testid="stMetricValue"] {
+    color: #1d4ed8 !important;
+}
+.stTabs [data-baseweb="tab-list"] {
+    background-color: #f1f5f9 !important;
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+}
+.stTabs [data-baseweb="tab"] {
+    color: #475569 !important;
+}
+.stTabs [aria-selected="true"] {
+    color: #1d4ed8 !important;
+    border-bottom: 2px solid #1d4ed8 !important;
+}
+.leaflet-tile-pane {
+    filter: none !important;
+}
+.status-badge-approved {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #15803d;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-weight: 600;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+}
+.status-badge-rejected {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #b91c1c;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-weight: 600;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+}
+.status-badge-vigilance {
+    background-color: rgba(249, 115, 22, 0.2);
+    color: #c2410c;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-weight: 600;
+    border: 1px solid rgba(249, 115, 22, 0.35);
+}
+</style>"""
     else:
-        # Auto / System theme adapts via standard CSS
-        return base_css
+        # Auto / System
+        return """<style>
+.main-header {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text-color, #1e293b);
+    margin-bottom: 0.2rem;
+}
+.sub-header {
+    font-size: 1.05rem;
+    color: var(--text-color, #475569);
+    opacity: 0.85;
+    margin-bottom: 1.5rem;
+}
+div[data-testid="stMetric"] {
+    background-color: var(--secondary-background-color, #f8fafc);
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid rgba(128, 128, 128, 0.2);
+}
+.status-badge-approved {
+    background-color: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-weight: 600;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+}
+.status-badge-rejected {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-weight: 600;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+}
+.status-badge-vigilance {
+    background-color: rgba(249, 115, 22, 0.2);
+    color: #f97316;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-weight: 600;
+    border: 1px solid rgba(249, 115, 22, 0.35);
+}
+@media (prefers-color-scheme: dark) {
+    .leaflet-tile-pane {
+        filter: invert(90%) hue-rotate(180deg) brightness(85%) contrast(90%);
+    }
+}
+</style>"""
 
 
 @st.cache_data
@@ -220,8 +293,8 @@ with st.sidebar:
     st.markdown("---")
     st.caption("Built for **Code for Communities 2.0** (Google Cloud & GDG)")
 
-# Inject active theme stylesheet
-st.markdown(get_theme_css(theme_mode), unsafe_allow_html=True)
+# Inject active theme stylesheet using st.html (never renders raw markdown or code block)
+st.html(get_theme_css(theme_mode))
 
 selected_claim = next(c for c in claims_list if c.claim_id == selected_claim_id)
 selected_tender = tender_dict[selected_claim.tender_id]
