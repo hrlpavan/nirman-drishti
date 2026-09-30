@@ -1,0 +1,8 @@
+google-genai>=0.1.1
+streamlit>=1.39.0
+pillow>=10.4.0
+pydantic>=2.9.0
+python-dotenv>=1.0.1
+folium>=0.17.0
+streamlit-folium>=0.22.0
+reportlab>=4.2.0
