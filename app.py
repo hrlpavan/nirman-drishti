@@ -1,571 +1,169 @@
 """
-Nirman-Drishti (निर्माण-दृष्टि)
-Autonomous Multimodal Forensic Audit Engine for Public Infrastructure & Constituency Works
-Streamlit Administrative Cockpit for District Collectors, MPs, and Vigilance Officers.
+Nirman-Drishti: Simple AI Road Construction & Bill Verification Dashboard
+Checks: (1) GPS Geofencing, (2) Computer Vision Road Surface, (3) Govt Bill Rate.
 """
 
-import os
+from datetime import date
 import json
+import os
+import tempfile
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
 from PIL import Image
 
-from datetime import date
-import tempfile
 from core.models import ProjectTender, ContractorClaim, ClaimItem
 from core.audit_engine import NirmanAuditEngine
 from core.vision_auditor import extract_exif_metadata
 from core.cert_generator import generate_pdf_certificate
 
-# Set page configuration
-st.set_page_config(
-    page_title="Nirman-Drishti | AI Public Works Forensic Auditor",
-    page_icon="🏛️",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# Theme state management & custom styling
-def get_theme_css(theme_mode: str) -> str:
-    if theme_mode == "🌙 Dark Mode":
-        return """<style>
-/* App background & text */
-.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
-    background-color: #0e1117 !important;
-    color: #f1f5f9 !important;
-}
-header[data-testid="stHeader"] {
-    background-color: #0e1117 !important;
-}
-[data-testid="stSidebar"], [data-testid="stSidebar"] > div:first-child {
-    background-color: #161b22 !important;
-    color: #f1f5f9 !important;
-}
-p, span, label, h1, h2, h3, h4, h5, h6, .stMarkdown {
-    color: #f1f5f9 !important;
-}
-.main-header {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: #f1f5f9 !important;
-    margin-bottom: 0.2rem;
-}
-.sub-header {
-    font-size: 1.05rem;
-    color: #94a3b8 !important;
-    margin-bottom: 1.5rem;
-}
-div[data-testid="stMetric"] {
-    background-color: #1a1f2c !important;
-    border: 1px solid #2e384d !important;
-    border-radius: 8px !important;
-    padding: 12px !important;
-}
-div[data-testid="stMetric"] label {
-    color: #94a3b8 !important;
-}
-div[data-testid="stMetricValue"] {
-    color: #60a5fa !important;
-}
-.stTabs [data-baseweb="tab-list"] {
-    background-color: #141822 !important;
-    border-radius: 8px !important;
-    border: 1px solid #2e384d !important;
-}
-.stTabs [data-baseweb="tab"] {
-    color: #94a3b8 !important;
-}
-.stTabs [aria-selected="true"] {
-    color: #60a5fa !important;
-    border-bottom: 2px solid #60a5fa !important;
-}
-.leaflet-tile-pane {
-    filter: invert(90%) hue-rotate(180deg) brightness(85%) contrast(90%);
-}
-.status-badge-approved {
-    background-color: rgba(34, 197, 94, 0.2);
-    color: #22c55e;
-    padding: 4px 12px;
-    border-radius: 9999px;
-    font-weight: 600;
-    border: 1px solid rgba(34, 197, 94, 0.35);
-}
-.status-badge-rejected {
-    background-color: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-    padding: 4px 12px;
-    border-radius: 9999px;
-    font-weight: 600;
-    border: 1px solid rgba(239, 68, 68, 0.35);
-}
-.status-badge-vigilance {
-    background-color: rgba(249, 115, 22, 0.2);
-    color: #f97316;
-    padding: 4px 12px;
-    border-radius: 9999px;
-    font-weight: 600;
-    border: 1px solid rgba(249, 115, 22, 0.35);
-}
-</style>"""
-    elif theme_mode == "☀️ Light Mode":
-        return """<style>
-/* App background & text */
-.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
-    background-color: #ffffff !important;
-    color: #0f172a !important;
-}
-header[data-testid="stHeader"] {
-    background-color: #ffffff !important;
-}
-[data-testid="stSidebar"], [data-testid="stSidebar"] > div:first-child {
-    background-color: #f8fafc !important;
-    color: #0f172a !important;
-}
-p, span, label, h1, h2, h3, h4, h5, h6, .stMarkdown {
-    color: #0f172a !important;
-}
-.main-header {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: #0f2a4a !important;
-    margin-bottom: 0.2rem;
-}
-.sub-header {
-    font-size: 1.05rem;
-    color: #475569 !important;
-    margin-bottom: 1.5rem;
-}
-div[data-testid="stMetric"] {
-    background-color: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 8px !important;
-    padding: 12px !important;
-}
-div[data-testid="stMetric"] label {
-    color: #475569 !important;
-}
-div[data-testid="stMetricValue"] {
-    color: #1d4ed8 !important;
-}
-.stTabs [data-baseweb="tab-list"] {
-    background-color: #f1f5f9 !important;
-    border-radius: 8px !important;
-    border: 1px solid #e2e8f0 !important;
-}
-.stTabs [data-baseweb="tab"] {
-    color: #475569 !important;
-}
-.stTabs [aria-selected="true"] {
-    color: #1d4ed8 !important;
-    border-bottom: 2px solid #1d4ed8 !important;
-}
-.leaflet-tile-pane {
-    filter: none !important;
-}
-.status-badge-approved {
-    background-color: rgba(34, 197, 94, 0.2);
-    color: #15803d;
-    padding: 4px 12px;
-    border-radius: 9999px;
-    font-weight: 600;
-    border: 1px solid rgba(34, 197, 94, 0.35);
-}
-.status-badge-rejected {
-    background-color: rgba(239, 68, 68, 0.2);
-    color: #b91c1c;
-    padding: 4px 12px;
-    border-radius: 9999px;
-    font-weight: 600;
-    border: 1px solid rgba(239, 68, 68, 0.35);
-}
-.status-badge-vigilance {
-    background-color: rgba(249, 115, 22, 0.2);
-    color: #c2410c;
-    padding: 4px 12px;
-    border-radius: 9999px;
-    font-weight: 600;
-    border: 1px solid rgba(249, 115, 22, 0.35);
-}
-</style>"""
-    else:
-        # Auto / System
-        return """<style>
-.main-header {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: var(--text-color, #1e293b);
-    margin-bottom: 0.2rem;
-}
-.sub-header {
-    font-size: 1.05rem;
-    color: var(--text-color, #475569);
-    opacity: 0.85;
-    margin-bottom: 1.5rem;
-}
-div[data-testid="stMetric"] {
-    background-color: var(--secondary-background-color, #f8fafc);
-    border-radius: 8px;
-    padding: 12px;
-    border: 1px solid rgba(128, 128, 128, 0.2);
-}
-.status-badge-approved {
-    background-color: rgba(34, 197, 94, 0.2);
-    color: #22c55e;
-    padding: 4px 12px;
-    border-radius: 9999px;
-    font-weight: 600;
-    border: 1px solid rgba(34, 197, 94, 0.35);
-}
-.status-badge-rejected {
-    background-color: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-    padding: 4px 12px;
-    border-radius: 9999px;
-    font-weight: 600;
-    border: 1px solid rgba(239, 68, 68, 0.35);
-}
-.status-badge-vigilance {
-    background-color: rgba(249, 115, 22, 0.2);
-    color: #f97316;
-    padding: 4px 12px;
-    border-radius: 9999px;
-    font-weight: 600;
-    border: 1px solid rgba(249, 115, 22, 0.35);
-}
-@media (prefers-color-scheme: dark) {
-    .leaflet-tile-pane {
-        filter: invert(90%) hue-rotate(180deg) brightness(85%) contrast(90%);
-    }
-}
-</style>"""
+st.set_page_config(page_title="Nirman-Drishti | AI Road Verification", page_icon="🛣️", layout="wide")
 
 
 @st.cache_data
-def load_tenders():
+def load_road_tender() -> ProjectTender:
     with open("data/tenders.json") as f:
-        return [ProjectTender(**t) for t in json.load(f)]
+        return ProjectTender(**json.load(f)[0])
 
 
-@st.cache_data
-def load_claims():
-    with open("data/claims.json") as f:
-        return [ContractorClaim(**c) for c in json.load(f)]
+tender = load_road_tender()
+tar_item = tender.boq_items[-1]  # Bituminous Concrete (75 MT @ Rs. 65,000)
 
-
-tenders_list = load_tenders()
-claims_list = load_claims()
-tender_dict = {t.tender_id: t for t in tenders_list}
-
-# Sidebar - Settings & Mode
-with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg", width=65)
-    st.title("Nirman-Drishti")
-    st.caption("Govt. of India DPI Forensic Infrastructure Auditor")
-    st.markdown("---")
-
-    st.markdown("### 🎨 Display Theme")
-    theme_mode = st.radio(
-        "Theme Mode",
-        options=["🌓 Auto (System)", "☀️ Light Mode", "🌙 Dark Mode"],
-        index=0,
-        horizontal=False
-    )
-    st.markdown("---")
-
-    api_key_input = st.text_input("Gemini API Key (Optional)", type="password", placeholder="Enter key for live vision")
-    if api_key_input:
-        os.environ["GEMINI_API_KEY"] = api_key_input
-        st.success("Gemini API Key active!")
-    else:
-        st.info("Operating in Autonomous Rule & Forensic Verification Mode.")
-
-    st.markdown("---")
-    st.markdown("### 📸 Audit Input Mode")
-    audit_mode = st.radio(
-        "Select Input Source:",
-        options=["📤 Upload Road Photo (Live Audit)", "📋 Pre-Loaded Claims (3 Cases)"],
-        index=0,
-    )
-
-    selected_claim = None
-    selected_tender = None
-    image_path = None
-
-    if audit_mode == "📋 Pre-Loaded Claims (3 Cases)":
-        claim_labels = {
-            c.claim_id: f"{c.claim_id} ({c.tender_id}) - {c.milestone_name[:30]}..."
-            for c in claims_list
-        }
-        selected_claim_id = st.selectbox(
-            "Choose Claim to Audit:",
-            options=list(claim_labels.keys()),
-            format_func=lambda x: claim_labels[x],
-            index=0
-        )
-        selected_claim = next(c for c in claims_list if c.claim_id == selected_claim_id)
-        selected_tender = tender_dict[selected_claim.tender_id]
-        image_path = os.path.join("data/sample_images", selected_claim.photo_filename) if selected_claim.photo_filename else None
-    else:
-        tender_options = {t.tender_id: f"{t.tender_id} — {t.project_name[:32]}..." for t in tenders_list}
-        chosen_tid = st.selectbox("1. Sanctioned Tender", options=list(tender_options.keys()), format_func=lambda k: tender_options[k])
-        selected_tender = tender_dict[chosen_tid]
-        primary_item = selected_tender.boq_items[-1]
-
-        uploaded_photo = st.file_uploader("2. Upload Road / Site Photo (JPG/PNG)", type=["jpg", "jpeg", "png", "webp"])
-        default_lat = round(selected_tender.target_lat + 0.0002, 4)
-        default_lng = round(selected_tender.target_lng + 0.0002, 4)
-
-        if uploaded_photo is not None:
-            suffix = os.path.splitext(uploaded_photo.name)[-1] or ".jpg"
-            tmp_file = os.path.join(tempfile.gettempdir(), f"nirman_live_upload{suffix}")
-            with open(tmp_file, "wb") as out_f:
-                out_f.write(uploaded_photo.getbuffer())
-            image_path = tmp_file
-            exif_info = extract_exif_metadata(image_path)
-            if exif_info["lat"] is not None and exif_info["lng"] is not None:
-                default_lat = round(exif_info["lat"], 5)
-                default_lng = round(exif_info["lng"], 5)
-                st.success(f"📍 Auto-extracted EXIF GPS: {default_lat}, {default_lng}")
-            else:
-                st.caption("ℹ️ No camera EXIF GPS in uploaded image — adjust or test GPS below.")
-        else:
-            image_path = "data/sample_images/road_wbm_unpaved.jpg"
-            st.caption("Using default sample road image until you upload a photo above.")
-
-        milestone_choice = st.selectbox(
-            "3. Claimed Construction Stage",
-            options=[
-                "100% Finished Bituminous Concrete Asphalt Surface",
-                "Stage 1: Compacted WBM Gravel Sub-Base",
-            ],
-        )
-        gps_preset = st.radio(
-            "4. GPS Location Test",
-            options=["Custom / EXIF Coordinates", "Inside Site Geofence (~30m)", "Spoofed Photo (11.7 km Away)"],
-            index=2 if uploaded_photo is None else 0,
-        )
-        if gps_preset == "Inside Site Geofence (~30m)":
-            claim_lat = round(selected_tender.target_lat + 0.0002, 5)
-            claim_lng = round(selected_tender.target_lng + 0.0002, 5)
-        elif gps_preset == "Spoofed Photo (11.7 km Away)":
-            claim_lat = round(selected_tender.target_lat + 0.0838, 5)
-            claim_lng = round(selected_tender.target_lng + 0.0669, 5)
-        else:
-            claim_lat = st.number_input("Photo Latitude", value=float(default_lat), format="%.5f")
-            claim_lng = st.number_input("Photo Longitude", value=float(default_lng), format="%.5f")
-
-        claimed_qty = st.number_input(
-            f"5. Claimed {primary_item.item_code} Qty (Approved: {primary_item.tendered_qty} {primary_item.unit})",
-            min_value=1.0,
-            value=float(primary_item.tendered_qty * 1.4) if uploaded_photo is None else float(primary_item.tendered_qty),
-        )
-        claimed_rate = st.number_input(
-            f"6. Billed Rate ₹/{primary_item.unit} (Govt SoR: ₹{primary_item.approved_rate_inr:,.0f})",
-            min_value=1.0,
-            value=float(primary_item.approved_rate_inr * 1.35) if uploaded_photo is None else float(primary_item.approved_rate_inr),
-        )
-        line_total = round(claimed_qty * claimed_rate, 2)
-        selected_claim = ContractorClaim(
-            claim_id="CLM-LIVE-UPLOAD",
-            tender_id=selected_tender.tender_id,
-            milestone_name=milestone_choice,
-            claimed_completion_pct=100.0 if "100%" in milestone_choice else 60.0,
-            claimed_amount_inr=line_total,
-            claim_date=str(date.today()),
-            photo_lat=claim_lat,
-            photo_lng=claim_lng,
-            photo_filename=uploaded_photo.name if uploaded_photo else "road_wbm_unpaved.jpg",
-            measurement_book_ref="MB-LIVE/2026/UPLOAD-01",
-            claimed_items=[
-                ClaimItem(
-                    item_code=primary_item.item_code,
-                    description=primary_item.description,
-                    claimed_qty=claimed_qty,
-                    claimed_unit_rate_inr=claimed_rate,
-                    total_claimed_amount_inr=line_total,
-                )
-            ],
-        )
-
-    st.markdown("---")
-    st.caption("Built for **Code for Communities 2.0** (Google Cloud & GDG)")
-
-# Inject active theme stylesheet using st.html (never renders raw markdown or code block)
-st.html(get_theme_css(theme_mode))
-
-# Header Banner
-st.markdown('<div class="main-header">🏛️ Nirman-Drishti (निर्माण-दृष्टि)</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Autonomous Multimodal Forensic Audit Engine for Public Infrastructure & Constituency Works (MPLADS / PMGSY / JJM)</div>', unsafe_allow_html=True)
-
-# Top Metrics Row
-col1, col2, col3, col4 = st.columns(4)
-with col1:
-    st.metric("Total Sanctioned Budget", f"₹{sum(t.sanctioned_budget_inr for t in tenders_list)/1e5:,.1f} Lakhs")
-with col2:
-    st.metric("Active Civic Projects", len(tenders_list))
-with col3:
-    st.metric("Tender Under Audit", selected_tender.tender_id)
-with col4:
-    st.metric("Claimed Amount", f"₹{selected_claim.claimed_amount_inr/1e5:,.2f} Lakhs")
-
-st.markdown("---")
-
-# Main Audit Execution
-audit_result = NirmanAuditEngine.audit_claim(selected_tender, selected_claim, image_path)
-
-# Tabbed Interface
-tab1, tab2, tab3 = st.tabs(["🔍 Forensic Audit & Evidence", "🗺️ Geospatial & Site Mapping", "📊 Bill of Quantities (BOQ) Reconciliation"])
-
-with tab1:
-    # Verdict Alert Banner
-    if audit_result.verdict == "APPROVED":
-        st.success(f"### ✅ {audit_result.verdict} — SAFE FOR DISBURSEMENT (Risk Score: {audit_result.risk_score}/100)")
-    elif audit_result.verdict == "FLAGGED_FOR_VIGILANCE":
-        st.warning(f"### ⚠️ {audit_result.verdict} — WITHHELD FOR EXECUTIVE SCRUTINY (Risk Score: {audit_result.risk_score}/100)")
-    else:
-        st.error(f"### 🚨 {audit_result.verdict} — CRITICAL FRAUD DETECTED (Risk Score: {audit_result.risk_score}/100)")
-
-    st.write(f"**Recommendation Summary:** {audit_result.recommendation_summary}")
-
-    col_img, col_forensic = st.columns([1, 1.2])
-
-    with col_img:
-        st.markdown("#### 📸 Contractor Submitted Site Photo")
-        if image_path and os.path.exists(image_path):
-            img = Image.open(image_path)
-            st.image(img, width="stretch", caption=f"Evidence: {selected_claim.photo_filename}")
-        else:
-            st.info("No photographic evidence attached to this claim.")
-
-        st.markdown("#### 🏛️ Project Details")
-        st.write(f"**Project:** {selected_tender.project_name}")
-        st.write(f"**Department:** {selected_tender.department}")
-        st.write(f"**Scheme:** {selected_tender.scheme}")
-        st.write(f"**Contractor:** {selected_tender.contractor_name}")
-        st.write(f"**Measurement Book Ref:** `{selected_claim.measurement_book_ref}`")
-
-    with col_forensic:
-        st.markdown("#### 🔬 AI Forensic Analysis")
-        st.write(f"**Physical Stage Identified:** `{audit_result.vision_stage_detected}`")
-        st.write(f"**Geofence Verification:** {'✅ Within perimeter' if audit_result.geospatial_verified else f'❌ VIOLATION ({audit_result.distance_from_site_meters:.1f}m away)'}")
-
-        st.markdown("##### 📌 Key Visual Observations:")
-        for obs in audit_result.vision_observations:
-            st.write(f"- {obs}")
-
-        st.markdown("##### ⚠️ Detected Discrepancies & Non-Conformances:")
-        if audit_result.discrepancies:
-            for d in audit_result.discrepancies:
-                severity_color = "red" if d.severity == "CRITICAL" else "orange" if d.severity == "HIGH" else "blue"
-                st.markdown(f"- **[:{severity_color}[{d.severity}]]** *{d.category}*: {d.description}")
-        else:
-            st.write("None. All parameters conform to sanction guidelines.")
-
-        st.markdown("---")
-        # Financial summary box
-        col_rec1, col_rec2 = st.columns(2)
-        with col_rec1:
-            st.metric("Questioned / Flagged Amount", f"₹{audit_result.total_flagged_amount_inr:,.2f}")
-        with col_rec2:
-            st.metric("Approved Disbursement", f"₹{audit_result.recommended_disbursement_inr:,.2f}")
-
-        # PDF Certificate Download
-        pdf_path = generate_pdf_certificate(selected_tender, selected_claim, audit_result)
-        if os.path.exists(pdf_path):
-            with open(pdf_path, "rb") as f:
-                pdf_bytes = f.read()
-            st.download_button(
-                label="📄 Download Official Signed Inspection Certificate (PDF)",
-                data=pdf_bytes,
-                file_name=f"Audit_Certificate_{audit_result.audit_id}.pdf",
-                mime="application/pdf",
-                width="stretch"
-            )
-        st.caption(f"🔒 Tamper-Proof Cryptographic Seal: `{audit_result.audit_hash}`")
-
-with tab2:
-    st.markdown("#### 🛰️ Geospatial Site Geofence & Coordinate Verification")
-    st.write(f"**Sanctioned Tender Target:** `{selected_tender.target_lat:.5f}, {selected_tender.target_lng:.5f}`")
-    st.write(f"**Claim Evidence Coordinates:** `{selected_claim.photo_lat:.5f}, {selected_claim.photo_lng:.5f}`")
-    st.write(f"**Offset Distance:** `{audit_result.distance_from_site_meters:.1f} meters` (Allowed Radius: `{selected_tender.geo_fence_radius_meters}m`)")
-
-    m = folium.Map(location=[selected_tender.target_lat, selected_tender.target_lng], zoom_start=14, tiles="OpenStreetMap")
-
-    # Tender Sanctioned Area
-    folium.Marker(
-        [selected_tender.target_lat, selected_tender.target_lng],
-        popup=f"Sanctioned Site: {selected_tender.project_name}",
-        icon=folium.Icon(color="blue", icon="info-sign")
-    ).add_to(m)
-
-    folium.Circle(
-        radius=selected_tender.geo_fence_radius_meters,
-        location=[selected_tender.target_lat, selected_tender.target_lng],
-        color="blue",
-        fill=True,
-        fill_opacity=0.15,
-        tooltip=f"Authorized Perimeter ({selected_tender.geo_fence_radius_meters}m)"
-    ).add_to(m)
-
-    # Claim Photo Location
-    if selected_claim.photo_lat and selected_claim.photo_lng:
-        marker_color = "green" if audit_result.geospatial_verified else "red"
-        folium.Marker(
-            [selected_claim.photo_lat, selected_claim.photo_lng],
-            popup=f"Claim Photo Location ({audit_result.distance_from_site_meters:.1f}m away)",
-            icon=folium.Icon(color=marker_color, icon="camera")
-        ).add_to(m)
-
-        # Line connecting the two
-        folium.PolyLine(
-            [[selected_tender.target_lat, selected_tender.target_lng], [selected_claim.photo_lat, selected_claim.photo_lng]],
-            color=marker_color,
-            weight=2,
-            dash_array="5, 5"
-        ).add_to(m)
-
-    st_folium(m, width=900, height=450)
-
-with tab3:
-    st.markdown("#### 📑 Tender Schedule of Rates (SoR) vs. Contractor Billed Items")
-    tender_map = {item.item_code: item for item in selected_tender.boq_items}
-
-    boq_table_data = []
-    for item in selected_claim.claimed_items:
-        tender_item = tender_map.get(item.item_code)
-        if tender_item:
-            rate_delta = item.claimed_unit_rate_inr - tender_item.approved_rate_inr
-            qty_delta = item.claimed_qty - tender_item.tendered_qty
-            status = "✅ Match" if (rate_delta <= 0 and qty_delta <= 0) else "❌ Overcharge"
-            boq_table_data.append({
-                "Item Code": item.item_code,
-                "Description": item.description,
-                "Claimed Qty": f"{item.claimed_qty:,.1f}",
-                "Approved Qty": f"{tender_item.tendered_qty:,.1f}",
-                "Billed Rate (₹)": f"₹{item.claimed_unit_rate_inr:,.2f}",
-                "SoR Rate (₹)": f"₹{tender_item.approved_rate_inr:,.2f}",
-                "Total Claimed (₹)": f"₹{item.total_claimed_amount_inr:,.2f}",
-                "Status": status
-            })
-        else:
-            boq_table_data.append({
-                "Item Code": item.item_code,
-                "Description": item.description,
-                "Claimed Qty": f"{item.claimed_qty:,.1f}",
-                "Approved Qty": "0.0 (Unsanctioned)",
-                "Billed Rate (₹)": f"₹{item.claimed_unit_rate_inr:,.2f}",
-                "SoR Rate (₹)": "N/A",
-                "Total Claimed (₹)": f"₹{item.total_claimed_amount_inr:,.2f}",
-                "Status": "🚨 Phantom Item"
-            })
-
-    st.dataframe(boq_table_data, width="stretch")
-
-# Footer
-st.markdown("---")
+st.title("🛣️ Nirman-Drishti")
+st.caption("AI Road Construction Verification using **Computer Vision**, **GPS Geofencing**, and **Bill Check**")
 st.markdown(
-    "<center><small>Nirman-Drishti | AI for Digital Public Infrastructure & Governance | "
-    "Designed for District Collectors, MPs, and Vigilance Officers | Powered by Google Cloud & Gemini</small></center>",
-    unsafe_allow_html=True
+    f"**Approved Project:** {tender.project_name} &nbsp;|&nbsp; "
+    f"**Govt Site GPS:** `{tender.target_lat}, {tender.target_lng}` (Allowed Radius: `{int(tender.geo_fence_radius_meters)}m`)"
 )
+st.divider()
+
+# --- STEP 1: SIMPLE INPUTS ---
+st.subheader("Step 1: Upload Road Photo & Contractor Bill")
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    demo_mode = st.radio(
+        "Quick Preset or Custom Upload",
+        options=["🔴 Demo 1: Fake Gravel Road", "🟢 Demo 2: Genuine Road Claim", "📸 Upload Custom Road Photo"],
+    )
+    uploaded = None
+    if demo_mode == "📸 Upload Custom Road Photo":
+        uploaded = st.file_uploader("Upload Road Photo (JPG/PNG)", type=["jpg", "jpeg", "png", "webp"])
+
+    image_path = "data/sample_images/road_wbm_unpaved.jpg"
+    exif_lat, exif_lng = None, None
+    if uploaded is not None:
+        tmp_path = os.path.join(tempfile.gettempdir(), f"road_upload_{uploaded.name}")
+        with open(tmp_path, "wb") as f:
+            f.write(uploaded.getbuffer())
+        image_path = tmp_path
+        exif = extract_exif_metadata(image_path)
+        exif_lat, exif_lng = exif["lat"], exif["lng"]
+        if exif_lat and exif_lng:
+            st.success(f"Auto-extracted Photo GPS: {exif_lat:.4f}, {exif_lng:.4f}")
+
+    if os.path.exists(image_path):
+        st.image(Image.open(image_path), caption="Submitted Road Photo", width="stretch")
+
+with col2:
+    default_lat = exif_lat if exif_lat else (14.2814 if "Demo 2" in demo_mode else 14.3650)
+    default_lng = exif_lng if exif_lng else (74.4533 if "Demo 2" in demo_mode else 74.5200)
+    photo_lat = st.number_input("Photo Latitude", value=float(default_lat), format="%.4f")
+    photo_lng = st.number_input("Photo Longitude", value=float(default_lng), format="%.4f")
+    st.caption("Tip: `14.2814, 74.4533` is at the road site (28m). `14.3650, 74.5200` is 11.7 km away.")
+
+with col3:
+    stage_options = [
+        "100% Finished Bituminous Tar Surface",
+        "Stage 1: Compacted WBM Gravel Base",
+    ]
+    claimed_stage = st.selectbox(
+        "Work Claimed by Contractor",
+        options=stage_options,
+        index=1 if "Demo 2" in demo_mode else 0,
+    )
+    billed_rate = st.number_input(
+        f"Billed Rate ₹/Ton (Govt Rate: ₹{tar_item.approved_rate_inr:,.0f})",
+        min_value=1000.0,
+        value=float(tar_item.approved_rate_inr if "Demo 2" in demo_mode else 88000.0),
+        step=1000.0,
+    )
+    claimed_qty = st.number_input(
+        f"Claimed Tar Qty in Tons (Govt Limit: {tar_item.tendered_qty:.0f} Tons)",
+        min_value=1.0,
+        value=float(tar_item.tendered_qty if "Demo 2" in demo_mode else 110.0),
+        step=5.0,
+    )
+
+line_total = round(billed_rate * claimed_qty, 2)
+claim = ContractorClaim(
+    claim_id="CLM-ROAD-01",
+    tender_id=tender.tender_id,
+    milestone_name=claimed_stage,
+    claimed_completion_pct=100.0 if "100%" in claimed_stage else 85.0,
+    claimed_amount_inr=line_total,
+    claim_date=str(date.today()),
+    photo_lat=photo_lat,
+    photo_lng=photo_lng,
+    photo_filename=uploaded.name if uploaded else "road_photo.jpg",
+    measurement_book_ref="MB-ROAD-01",
+    claimed_items=[
+        ClaimItem(
+            item_code=tar_item.item_code,
+            description=tar_item.description,
+            claimed_qty=claimed_qty,
+            claimed_unit_rate_inr=billed_rate,
+            total_claimed_amount_inr=line_total,
+        )
+    ],
+)
+
+result = NirmanAuditEngine.audit_claim(tender, claim, image_path)
+
+st.divider()
+
+# --- STEP 2: VERDICT & 3 SIMPLE CHECKS ---
+if result.verdict == "APPROVED":
+    st.success(f"### ✅ APPROVED — Genuine Work Verified (Risk Score: {result.risk_score}/100)")
+elif result.verdict == "FLAGGED_FOR_VIGILANCE":
+    st.warning(f"### ⚠️ HOLD — Rate Overcharge Detected (Risk Score: {result.risk_score}/100)")
+else:
+    st.error(f"### 🚨 REJECTED — Fraud / Mismatch Detected (Risk Score: {result.risk_score}/100)")
+
+c1, c2, c3 = st.columns(3)
+with c1:
+    st.markdown("#### 📍 1. GPS Geofence Check")
+    st.write(f"**Distance from Site:** `{result.distance_from_site_meters:.1f} m` (Max `{int(tender.geo_fence_radius_meters)} m`)")
+    st.write("✅ **PASSED** (Inside boundary)" if result.geospatial_verified else "❌ **FAILED** (Outside 500m boundary)")
+
+with c2:
+    st.markdown("#### 👁️ 2. Computer Vision Check")
+    st.write(f"**Detected Surface:** `{result.vision_stage_detected}`")
+    vision_failed = any(d.category == "VISION_MISMATCH" for d in result.discrepancies)
+    st.write("❌ **FAILED** (Surface does not match claim)" if vision_failed else "✅ **PASSED** (Surface matches claim)")
+
+with c3:
+    st.markdown("#### 💰 3. Govt Bill Rate Check")
+    st.write(f"**Contractor Bill:** `₹{line_total:,.0f}`")
+    st.write(f"**Questioned Overcharge:** `₹{result.total_flagged_amount_inr:,.0f}`")
+    bill_failed = any(d.category in ("RATE_INFLATION", "QUANTITY_OVERCLAIM") for d in result.discrepancies)
+    st.write("❌ **OVERCHARGED**" if bill_failed else "✅ **PASSED** (Within Govt Rate)")
+
+pdf_path = generate_pdf_certificate(tender, claim, result)
+with open(pdf_path, "rb") as pf:
+    st.download_button(
+        "📄 Download Audit Report (PDF)",
+        data=pf.read(),
+        file_name=f"Nirman_Drishti_Report_{result.verdict}.pdf",
+        mime="application/pdf",
+    )
+
+# --- LIVE MAP ---
+st.markdown("#### 🗺️ Live GPS Geofence Map")
+m = folium.Map(location=[tender.target_lat, tender.target_lng], zoom_start=13)
+folium.Marker([tender.target_lat, tender.target_lng], popup="Approved Govt Road Site").add_to(m)
+folium.Circle(radius=tender.geo_fence_radius_meters, location=[tender.target_lat, tender.target_lng], color="blue", fill=True).add_to(m)
+pin_color = "green" if result.geospatial_verified else "red"
+folium.Marker([photo_lat, photo_lng], popup=f"Photo GPS ({result.distance_from_site_meters:.1f}m)", icon=folium.Icon(color=pin_color)).add_to(m)
+folium.PolyLine([[tender.target_lat, tender.target_lng], [photo_lat, photo_lng]], color=pin_color, dash_array="5, 5").add_to(m)
+st_folium(m, width=900, height=360)

@@ -1,1605 +1,571 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nirman-Drishti (निर्माण-दृष्टि) | Autonomous Public Works Forensic Auditor</title>
-  <link rel="icon" type="image/png" href="assets/emblem_of_india.png">
-  
-  <!-- Inter & JetBrains Mono Fonts for Executive GovTech Typography -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <!-- Tailwind CSS & Font Awesome Icons -->
+  <title>Nirman-Drishti | AI Road Construction &amp; Bill Verification</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
-          colors: {
-            gov: {
-              50: '#f0f6ff',
-              100: '#e0edfe',
-              600: '#1d4ed8',
-              800: '#0f2a4a',
-              900: '#08172b',
-              950: '#040b15',
-            }
-          }
-        }
-      }
-    }
-  </script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Leaflet GIS Map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- jsPDF for Signed Certificate Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  <style>
-    body {
-      font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
-    }
-    .dark-map .leaflet-tile-pane {
-      filter: invert(90%) hue-rotate(180deg) brightness(85%) contrast(90%);
-    }
-    .tabular-nums {
-      font-variant-numeric: tabular-nums;
-    }
-    .tricolor-bar {
-      height: 3px;
-      background: linear-gradient(90deg, #ff9933 33.3%, #ffffff 33.3%, #ffffff 66.6%, #138808 66.6%);
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background-color: rgba(148, 163, 184, 0.4);
-      border-radius: 9999px;
-    }
-  </style>
 </head>
-<body class="bg-[#f8fafc] dark:bg-[#070b14] text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+<body class="bg-slate-50 text-slate-800 min-h-screen font-sans">
 
-  <!-- TOP GOVTECH TRICOLOR IDENTITY BAR -->
-  <div class="tricolor-bar w-full"></div>
-
-  <!-- HEADER NAVIGATION -->
-  <header class="bg-white dark:bg-[#0d1424] border-b border-slate-200/80 dark:border-slate-800/80 sticky top-0 z-30 shadow-xs backdrop-blur-md bg-white/95 dark:bg-[#0d1424]/95">
-    <div class="max-w-[1720px] mx-auto px-4 lg:px-8 py-3 flex items-center justify-between">
-      
-      <!-- Brand & Emblem -->
-      <div class="flex items-center space-x-4">
-        <img src="assets/emblem_of_india.png" alt="Lion Capital of Ashoka" class="h-10 w-auto object-contain">
-        <div class="border-l border-slate-200 dark:border-slate-800 pl-4">
-          <div class="flex items-center space-x-2">
-            <h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-none">NIRMAN-DRISHTI</h1>
-            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 font-mono">(निर्माण-दृष्टि)</span>
-            <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
-              DPI Core v2.4
-            </span>
-          </div>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium tracking-tight mt-0.5">
-            Ministry of Rural Development &bull; Directorate of Digital Public Infrastructure &amp; Vigilance
-          </p>
-        </div>
+  <!-- SIMPLE CLEAN HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">🛣️ Nirman-Drishti</h1>
+        <p class="text-xs sm:text-sm text-slate-500">AI Road Construction Verification using <b>Computer Vision</b>, <b>GPS Geofencing</b> &amp; <b>Bill Check</b></p>
       </div>
-
-      <!-- Action Tools & Theme Switcher -->
-      <div class="flex items-center space-x-3">
-        <!-- Live AI Telemetry Badge -->
-        <div class="hidden md:flex items-center space-x-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 px-3 py-1.5 rounded-full text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span class="font-mono text-[11px]">Gemini 2.0 Vision Online</span>
-        </div>
-
-        <!-- Light/Dark Toggle -->
-        <div class="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700/80">
-          <button id="themeLightBtn" onclick="setTheme('light')" title="Light Mode" class="px-2.5 py-1 rounded text-xs font-medium flex items-center space-x-1.5 transition-all">
-            <i class="fa-regular fa-sun text-amber-500"></i>
-            <span class="text-[11px]">Light</span>
-          </button>
-          <button id="themeDarkBtn" onclick="setTheme('dark')" title="Dark Mode" class="px-2.5 py-1 rounded text-xs font-medium flex items-center space-x-1.5 transition-all">
-            <i class="fa-regular fa-moon text-blue-400"></i>
-            <span class="text-[11px]">Dark</span>
-          </button>
-        </div>
-
-        <!-- Upload Road Photo CTA Button -->
-        <button onclick="toggleUploadPanel(true)" class="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-semibold py-2 px-3.5 rounded-lg shadow-xs transition-all">
-          <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
-          <span>Upload Road Photo</span>
-        </button>
-
-        <!-- Download Signed Certificate Button -->
-        <button onclick="downloadCertificate()" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs font-semibold py-2 px-3.5 rounded-lg shadow-xs transition-all">
-          <i class="fa-solid fa-file-shield text-xs"></i>
-          <span class="hidden sm:inline">Official Certificate</span>
-          <span class="sm:hidden">PDF</span>
-        </button>
-
-        <!-- GitHub Link -->
-        <a href="https://github.com/hrlpavan/nirman-drishti" target="_blank" title="View Source on GitHub" class="p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-          <i class="fa-brands fa-github text-lg"></i>
-        </a>
-      </div>
-
+      <button onclick="downloadPdfReport()" class="self-start sm:self-auto bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">
+        📄 Download Audit Report (PDF)
+      </button>
     </div>
   </header>
 
-  <!-- MAIN APP CONTAINER -->
-  <div class="flex-1 max-w-[1720px] w-full mx-auto px-4 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <main class="max-w-5xl mx-auto px-4 py-6 space-y-6">
 
-    <!-- LEFT SIDEBAR: CASE SELECTOR & TELEMETRY (3 Cols) -->
-    <aside class="lg:col-span-3 space-y-5">
-      
-      <!-- AUDIT CASE SELECTION CARDS -->
-      <div class="bg-white dark:bg-[#0d1424] rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-4 shadow-2xs">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
-            <i class="fa-solid fa-list-check text-blue-500"></i>
-            <span>Active Tenders &amp; Claims</span>
-          </h2>
-          <span id="casesCountBadge" class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">3 Cases</span>
+    <!-- STEP 1: INPUT CARD -->
+    <section class="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-3">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Step 1: Upload Road Photo &amp; Contractor Bill Details</h2>
+          <p class="text-xs text-slate-500">Approved Project: <b>Honnavar Village Link Road (1.8 km)</b> &bull; Govt Site GPS: <span class="font-mono">14.2812, 74.4531</span> (Max 500m radius)</p>
         </div>
-
-        <button onclick="toggleUploadPanel(true)" class="w-full mb-3 inline-flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-3 rounded-xl text-xs shadow-xs transition-all">
-          <i class="fa-solid fa-camera"></i>
-          <span>+ Upload Road Photo &amp; Audit Live</span>
-        </button>
-
-        <div class="space-y-2.5" id="claimCardsContainer">
-          <!-- Populated dynamically via JS for active states -->
-        </div>
-      </div>
-
-      <!-- DPI INTEGRATION STATUS -->
-      <div class="bg-white dark:bg-[#0d1424] rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-4 shadow-2xs text-xs space-y-3">
-        <h3 class="font-bold text-slate-900 dark:text-white uppercase text-[11px] tracking-wider text-slate-500 flex items-center space-x-1.5">
-          <i class="fa-solid fa-network-wired text-indigo-500"></i>
-          <span>DPI Protocol Status</span>
-        </h3>
-        
-        <div class="space-y-2 font-mono text-[11px]">
-          <div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
-            <span class="text-slate-500">Treasury (PFMS):</span>
-            <span class="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center space-x-1">
-              <i class="fa-solid fa-check text-[10px]"></i><span>Escrow Ready</span>
-            </span>
-          </div>
-          <div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
-            <span class="text-slate-500">DigiLocker Seal:</span>
-            <span class="font-semibold text-blue-600 dark:text-blue-400">SHA-256 Valid</span>
-          </div>
-          <div class="flex items-center justify-between py-1">
-            <span class="text-slate-500">State SoR Schedule:</span>
-            <span class="font-semibold text-slate-800 dark:text-slate-200">CPWD / PWD 2026</span>
-          </div>
-        </div>
-
-        <div class="pt-2">
-          <a href="assets/Nirman_Drishti_Presentation_Deck.pdf" target="_blank" class="w-full inline-flex items-center justify-center space-x-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold py-2 px-3 rounded-lg text-xs transition-all">
-            <i class="fa-regular fa-file-pdf text-red-500"></i>
-            <span>Download Pitch Deck (PDF)</span>
-          </a>
-        </div>
-      </div>
-
-    </aside>
-
-    <!-- RIGHT WORKSPACE: AUDIT COCKPIT (9 Cols) -->
-    <section class="lg:col-span-9 space-y-6">
-
-      <!-- LIVE ROAD PHOTO UPLOAD & FORENSIC CLAIM ANALYZER -->
-      <div id="liveUploadPanel" class="bg-white dark:bg-[#0d1424] rounded-xl border-2 border-emerald-500/70 dark:border-emerald-500/50 p-5 shadow-sm space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-          <div class="flex items-center space-x-2.5">
-            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
-              <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
-            </span>
-            <div>
-              <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-                <span>Live Road Photo Upload &amp; Real-Time Forensic Audit</span>
-                <span class="px-2 py-0.5 text-[10px] font-mono uppercase rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold">Interactive Engine</span>
-              </h2>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400">Upload any road/site photo (or try a 1-click sample) to run live EXIF GPS Geofencing + Computer Vision Surface Check + BOQ Rate Audit.</p>
-            </div>
-          </div>
-          <button onclick="toggleUploadPanel(false)" class="text-xs font-medium text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 px-2 py-1 rounded">
-            Minimize <i class="fa-solid fa-chevron-up ml-1 text-[10px]"></i>
+        <!-- 2 Instant Demo Presets -->
+        <div class="flex flex-wrap gap-2">
+          <button type="button" onclick="loadDemo('fraud')" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100">
+            🔴 Demo 1: Fake Gravel Road
+          </button>
+          <button type="button" onclick="loadDemo('genuine')" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100">
+            🟢 Demo 2: Genuine Tar Road
           </button>
         </div>
+      </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-          <!-- Col 1: Image Upload & Quick Samples (4 cols) -->
-          <div class="md:col-span-4 space-y-2.5">
-            <input id="roadPhotoInput" type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
-            <label for="roadPhotoInput" class="cursor-pointer block border-2 border-dashed border-emerald-400 dark:border-emerald-700 hover:border-emerald-600 bg-emerald-50/40 dark:bg-emerald-950/20 rounded-xl p-3 text-center transition-all">
-              <div id="uploadPreviewWrap" class="hidden mb-2 relative rounded-lg overflow-hidden h-28 bg-slate-900">
-                <img id="uploadPreviewImg" src="" alt="Uploaded preview" class="w-full h-full object-cover">
-                <span id="uploadPreviewBadge" class="absolute bottom-1.5 left-1.5 bg-slate-950/85 text-white text-[10px] font-mono px-2 py-0.5 rounded">--</span>
-              </div>
-              <div id="uploadEmptyPrompt" class="py-4 space-y-1">
-                <i class="fa-solid fa-camera-retro text-2xl text-emerald-600 dark:text-emerald-400"></i>
-                <p class="text-xs font-bold text-slate-800 dark:text-slate-100">Click to Upload Road / Site Photo</p>
-                <p class="text-[10px] text-slate-500">Supports JPG / PNG / Phone Camera (Auto-reads EXIF GPS)</p>
-              </div>
-            </label>
-            <div class="flex items-center gap-1.5">
-              <button type="button" onclick="loadSamplePhoto('gravel')" class="flex-1 py-1.5 px-2 rounded-lg border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-[10px] font-semibold hover:bg-rose-100 transition-all">
-                🪨 Try Unpaved Gravel Photo
-              </button>
-              <button type="button" onclick="loadSamplePhoto('tar')" class="flex-1 py-1.5 px-2 rounded-lg border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-semibold hover:bg-emerald-100 transition-all">
-                🛣️ Try Finished Tar Road
-              </button>
-            </div>
-            <p id="exifStatusMsg" class="text-[10px] font-mono text-slate-500 dark:text-slate-400">📍 Upload a photo or select a sample above.</p>
-          </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- 1. Photo Upload -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-700">1. Road Photo (JPG / PNG)</label>
+          <input id="photoInput" type="file" accept="image/*" class="hidden" onchange="onPhotoSelected(event)">
+          <label for="photoInput" class="cursor-pointer block border-2 border-dashed border-blue-300 hover:border-blue-500 bg-blue-50/40 rounded-xl p-3 text-center transition">
+            <img id="previewImg" src="assets/road_wbm_unpaved.jpg" alt="Road preview" class="w-full h-32 object-cover rounded-lg mb-2 bg-slate-200">
+            <span class="inline-block bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg">📸 Choose Road Photo</span>
+          </label>
+          <p id="photoStatus" class="text-[11px] text-slate-500">Using Demo 1 unpaved gravel road photo (or upload any photo).</p>
+        </div>
 
-          <!-- Col 2: Tender, Stage & GPS Coordinates (4 cols) -->
-          <div class="md:col-span-4 space-y-2.5 text-xs">
-            <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">1. Sanctioned Govt Tender</label>
-              <select id="liveTenderSelect" onchange="onLiveTenderChange()" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold">
-                <option value="PMGSY-2026-KA-491">PMGSY-2026-KA-491 • Honnavar Village Road (Rs. 48L)</option>
-                <option value="JJM-2026-MH-102">JJM-2026-MH-102 • PHC Shirwal Solar Pump (Rs. 14.5L)</option>
-                <option value="MPLADS-2026-DL-088">MPLADS-2026-DL-088 • Najafgarh Anganwadi (Rs. 65L)</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">2. Contractor Claimed Milestone</label>
-              <select id="liveMilestoneSelect" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold">
-                <option value="FINISHED_TAR">100% Finished Black Bituminous Tar Road</option>
-                <option value="WBM_SUBBASE">Stage 1: WBM Gravel Sub-Base Only</option>
-              </select>
-            </div>
-
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">3. Photo GPS Coordinates</label>
-                <div class="space-x-1">
-                  <button type="button" onclick="setGpsPreset('inside')" class="text-[10px] font-semibold text-emerald-600 hover:underline">At Site (31m)</button>
-                  <span class="text-slate-300">|</span>
-                  <button type="button" onclick="setGpsPreset('outside')" class="text-[10px] font-semibold text-rose-600 hover:underline">11.7km Away</button>
-                  <span class="text-slate-300">|</span>
-                  <button type="button" onclick="setGpsPreset('device')" class="text-[10px] font-semibold text-blue-600 hover:underline">My GPS</button>
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-2">
-                <input id="liveLatInput" type="number" step="0.0001" value="14.3650" placeholder="Latitude" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 font-mono text-xs">
-                <input id="liveLngInput" type="number" step="0.0001" value="74.5200" placeholder="Longitude" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 font-mono text-xs">
-              </div>
-            </div>
-          </div>
-
-          <!-- Col 3: BOQ Bill Inputs + Run Audit Button (4 cols) -->
-          <div class="md:col-span-4 flex flex-col justify-between space-y-2.5 text-xs">
-            <div class="space-y-2.5">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">4. Contractor Billed BOQ</span>
-                <div class="space-x-1">
-                  <button type="button" onclick="setBillPreset('honest')" class="text-[10px] font-semibold text-emerald-600 hover:underline">Govt SoR Rate</button>
-                  <span class="text-slate-300">|</span>
-                  <button type="button" onclick="setBillPreset('inflated')" class="text-[10px] font-semibold text-rose-600 hover:underline">Inflated Bill</button>
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label id="liveQtyLabel" class="block text-[10px] text-slate-400 mb-0.5">Bitumen Qty (Max 75 MT)</label>
-                  <input id="liveQtyInput" type="number" step="1" value="110" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 font-mono text-xs">
-                </div>
-                <div>
-                  <label id="liveRateLabel" class="block text-[10px] text-slate-400 mb-0.5">Billed Rate (SoR: Rs.65000)</label>
-                  <input id="liveRateInput" type="number" step="100" value="88000" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 font-mono text-xs">
-                </div>
-              </div>
-              <div>
-                <input id="liveGeminiKey" type="password" placeholder="Optional: Gemini API Key (uses built-in CV if blank)" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 text-[11px]">
-              </div>
-            </div>
-
-            <button id="runLiveAuditBtn" type="button" onclick="runLiveForensicAudit()" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs shadow-sm flex items-center justify-center space-x-2 transition-all">
-              <i class="fa-solid fa-bolt"></i>
-              <span>Run Live Forensic Audit Now</span>
+        <!-- 2. GPS Coordinates -->
+        <div class="space-y-3">
+          <label class="block text-xs font-bold text-slate-700">2. Photo GPS Location</label>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="setGps('inside')" class="text-[11px] font-semibold px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100">
+              📍 At Road Site (28m)
+            </button>
+            <button type="button" onclick="setGps('outside')" class="text-[11px] font-semibold px-2.5 py-1 rounded bg-red-50 text-red-700 border border-red-200 hover:bg-red-100">
+              🚨 Wrong Village (11.7 km)
+            </button>
+            <button type="button" onclick="setGps('mygps')" class="text-[11px] font-semibold px-2.5 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100">
+              📡 My Live GPS
             </button>
           </div>
-        </div>
-
-        <!-- Live Step-by-Step Pipeline Execution Log -->
-        <div id="liveAuditLogBox" class="hidden rounded-lg bg-slate-900 text-emerald-300 font-mono text-[11px] p-3 space-y-1 border border-slate-800"></div>
-      </div>
-
-      <!-- TOP TELEMETRY METRICS ROW -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white dark:bg-[#0d1424] p-4 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
-          <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Sanctioned Tender Budget</span>
-          <p id="metricBudget" class="text-xl md:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mt-1 tabular-nums">--</p>
-          <span class="text-[10px] text-slate-400 mt-1 block">Full sanction ceiling</span>
-        </div>
-
-        <div class="bg-white dark:bg-[#0d1424] p-4 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
-          <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Tender Identifier</span>
-          <p id="metricTender" class="text-base md:text-lg font-bold font-mono tracking-tight text-blue-600 dark:text-blue-400 mt-1 truncate">--</p>
-          <span id="metricSchemeTag" class="text-[10px] text-slate-400 mt-1 block truncate">--</span>
-        </div>
-
-        <div class="bg-white dark:bg-[#0d1424] p-4 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
-          <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Claimed Milestone Value</span>
-          <p id="metricClaimed" class="text-xl md:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mt-1 tabular-nums">--</p>
-          <span class="text-[10px] text-slate-400 mt-1 block">Submitted by contractor</span>
-        </div>
-
-        <div class="bg-white dark:bg-[#0d1424] p-4 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
-          <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Questioned Overcharge</span>
-          <p id="metricFlagged" class="text-xl md:text-2xl font-bold tracking-tight text-rose-600 dark:text-rose-400 mt-1 tabular-nums">--</p>
-          <span id="metricSavingsTag" class="text-[10px] font-medium text-rose-500 dark:text-rose-400 mt-1 block">Potential public loss</span>
-        </div>
-      </div>
-
-      <!-- TABS NAVIGATION -->
-      <div class="bg-white dark:bg-[#0d1424] rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-1.5 shadow-2xs flex space-x-1.5">
-        <button id="tabBtn1" onclick="switchTab(1)" class="flex-1 py-2 px-3 rounded-lg font-semibold text-xs md:text-sm flex items-center justify-center space-x-2 transition-all bg-blue-600 text-white shadow-xs">
-          <i class="fa-solid fa-microscope text-xs"></i>
-          <span>1. Forensic Audit &amp; Vision Analysis</span>
-        </button>
-        <button id="tabBtn2" onclick="switchTab(2)" class="flex-1 py-2 px-3 rounded-lg font-semibold text-xs md:text-sm flex items-center justify-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
-          <i class="fa-solid fa-satellite text-xs"></i>
-          <span>2. Geospatial Geofence Verification</span>
-        </button>
-        <button id="tabBtn3" onclick="switchTab(3)" class="flex-1 py-2 px-3 rounded-lg font-semibold text-xs md:text-sm flex items-center justify-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
-          <i class="fa-solid fa-scale-balanced text-xs"></i>
-          <span>3. Schedule of Rates (BOQ) Audit</span>
-        </button>
-      </div>
-
-      <!-- TAB 1: FORENSIC VISION & AUDIT FINDINGS -->
-      <div id="tabContent1" class="space-y-6">
-
-        <!-- EXECUTIVE VERDICT BANNER -->
-        <div id="verdictBanner" class="p-5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs transition-all">
-          <div class="space-y-1.5">
-            <div class="flex items-center space-x-2.5">
-              <span id="verdictBadge" class="px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider font-mono">--</span>
-              <h3 id="verdictTitle" class="text-base md:text-lg font-bold tracking-tight">--</h3>
-            </div>
-            <p id="verdictSummary" class="text-xs md:text-sm leading-relaxed max-w-4xl opacity-90"></p>
-          </div>
-          <div class="text-left md:text-right border-t md:border-t-0 md:border-l border-current/20 pt-3 md:pt-0 md:pl-5 shrink-0">
-            <span class="text-[10px] uppercase font-bold tracking-wider opacity-75 block">Composite Fraud Risk</span>
-            <span id="verdictRisk" class="text-2xl md:text-3xl font-extrabold font-mono tabular-nums">--</span>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-          <!-- LEFT COLUMN: EVIDENCE IMAGE & METADATA -->
-          <div class="lg:col-span-5 bg-white dark:bg-[#0d1424] p-5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex flex-col">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3">
-              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
-                <i class="fa-regular fa-image text-blue-500"></i>
-                <span>Contractor Site Photographic Evidence</span>
-              </h4>
-              <span id="evidenceFilename" class="text-[11px] font-mono text-blue-600 dark:text-blue-400">--</span>
-            </div>
-
-            <!-- Image Frame -->
-            <div class="relative bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700/80 aspect-4/3 flex items-center justify-center">
-              <img id="evidenceImage" src="" alt="Site Inspection Evidence" class="w-full h-full object-cover">
-              <span id="evidenceTag" class="absolute bottom-2 left-2 bg-slate-950/85 backdrop-blur-xs text-white text-[10px] font-mono px-2 py-0.5 rounded border border-white/20">
-                --
-              </span>
-            </div>
-
-            <!-- Structured Metadata Specs -->
-            <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2 text-xs">
-              <div class="flex justify-between items-center py-0.5">
-                <span class="text-slate-400 font-medium">Project Name:</span>
-                <span id="infoProject" class="font-semibold text-slate-800 dark:text-slate-200 text-right max-w-[65%] truncate">--</span>
-              </div>
-              <div class="flex justify-between items-center py-0.5">
-                <span class="text-slate-400 font-medium">Department:</span>
-                <span id="infoDept" class="font-semibold text-slate-800 dark:text-slate-200 text-right">--</span>
-              </div>
-              <div class="flex justify-between items-center py-0.5">
-                <span class="text-slate-400 font-medium">Contractor:</span>
-                <span id="infoContractor" class="font-semibold text-slate-800 dark:text-slate-200 text-right">--</span>
-              </div>
-              <div class="flex justify-between items-center py-0.5">
-                <span class="text-slate-400 font-medium">Measurement Book (MB):</span>
-                <span id="infoMB" class="font-mono font-semibold text-blue-600 dark:text-blue-400 text-right">--</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- RIGHT COLUMN: AI FORENSIC ANALYSIS & DISCREPANCIES -->
-          <div class="lg:col-span-7 bg-white dark:bg-[#0d1424] p-5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs flex flex-col justify-between">
+          <div class="grid grid-cols-2 gap-2">
             <div>
-              <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
-                  <i class="fa-solid fa-brain text-purple-500"></i>
-                  <span>Gemini Multimodal Structural Reasoning</span>
-                </h4>
-                <span class="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">Verification Pass</span>
-              </div>
+              <span class="block text-[11px] text-slate-500 mb-1">Photo Latitude</span>
+              <input id="latInput" type="number" step="0.0001" value="14.3650" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono">
+            </div>
+            <div>
+              <span class="block text-[11px] text-slate-500 mb-1">Photo Longitude</span>
+              <input id="lngInput" type="number" step="0.0001" value="74.5200" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono">
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400">If your phone photo has GPS tags, coordinates fill automatically.</p>
+        </div>
 
-              <!-- Stage & Geofence Badges -->
-              <div class="grid grid-cols-2 gap-3 mb-4">
-                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">AI Detected Construction Stage</span>
-                  <p id="forensicStage" class="text-xs font-bold text-slate-900 dark:text-white mt-1">--</p>
-                </div>
-                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Sanction Boundary Verification</span>
-                  <p id="forensicGeofence" class="text-xs font-bold mt-1">--</p>
-                </div>
-              </div>
-
-              <!-- Observations Bullet Points -->
-              <div class="mb-4">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-2">Ground-Truth Observations:</span>
-                <ul id="observationsList" class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
-                  <!-- Injected via JS -->
-                </ul>
-              </div>
-
-              <!-- Discrepancies Container -->
+        <!-- 3. Contractor Bill Details -->
+        <div class="flex flex-col justify-between space-y-3">
+          <div class="space-y-2.5">
+            <label class="block text-xs font-bold text-slate-700">3. Contractor Bill Claim</label>
+            <div>
+              <span class="block text-[11px] text-slate-500 mb-1">Work Claimed by Contractor</span>
+              <select id="stageSelect" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-medium bg-white">
+                <option value="FINISHED_TAR">Finished Black Tar Road (100% Complete)</option>
+                <option value="GRAVEL_ONLY">Stage 1: Gravel Base Only</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
               <div>
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-2">Audited Non-Conformances &amp; Overcharges:</span>
-                <div id="discrepanciesContainer" class="space-y-2">
-                  <!-- Injected via JS -->
-                </div>
+                <span class="block text-[11px] text-slate-500 mb-1">Billed Rate (₹/Ton)</span>
+                <input id="rateInput" type="number" step="500" value="88000" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono">
+                <span class="text-[10px] text-slate-400">Govt Rate: ₹65,000</span>
+              </div>
+              <div>
+                <span class="block text-[11px] text-slate-500 mb-1">Tar Qty (Tons)</span>
+                <input id="qtyInput" type="number" step="1" value="110" class="w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono">
+                <span class="text-[10px] text-slate-400">Govt Limit: 75 Tons</span>
               </div>
             </div>
-
-            <!-- Cryptographic Seal Footer -->
-            <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
-              <span class="flex items-center space-x-1.5 truncate">
-                <i class="fa-solid fa-shield-halved text-emerald-500"></i>
-                <span id="cryptoHash" class="truncate max-w-[280px]">--</span>
-              </span>
-              <span class="uppercase tracking-wider text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">Tamper-Proof Seal</span>
-            </div>
           </div>
 
-        </div>
-
-      </div>
-
-      <!-- TAB 2: GEOSPATIAL MAP & GEOFENCING -->
-      <div id="tabContent2" class="hidden space-y-4">
-        <div class="bg-white dark:bg-[#0d1424] p-5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
-          
-          <div class="flex flex-col md:flex-row md:items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4 gap-2">
-            <div>
-              <h4 class="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-white flex items-center space-x-1.5">
-                <i class="fa-solid fa-map-location-dot text-blue-500"></i>
-                <span>Constituency GIS Alignment &amp; Boundary Analysis</span>
-              </h4>
-              <p class="text-xs text-slate-500 mt-0.5">Calculates Haversine spherical offset between contractor camera EXIF and tender geofence.</p>
-            </div>
-            <div class="flex items-center space-x-4 text-xs font-medium">
-              <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span><span class="text-slate-600 dark:text-slate-300">Sanctioned Alignment</span></span>
-              <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span class="text-slate-600 dark:text-slate-300">Verified Evidence</span></span>
-              <span class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span><span class="text-slate-600 dark:text-slate-300">Geofence Violation</span></span>
-            </div>
-          </div>
-
-          <!-- Leaflet Container -->
-          <div id="map" class="w-full h-[420px] rounded-lg border border-slate-200 dark:border-slate-700/80 z-0"></div>
-
-          <!-- Coordinate Details Matrix -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs">
-            <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
-              <span class="text-slate-400 font-medium uppercase text-[10px] block">Sanctioned Tender Target</span>
-              <p id="mapTenderCoords" class="font-mono font-bold text-slate-800 dark:text-slate-200 mt-1">--</p>
-            </div>
-            <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
-              <span class="text-slate-400 font-medium uppercase text-[10px] block">Photo Evidence GPS Coordinates</span>
-              <p id="mapPhotoCoords" class="font-mono font-bold text-slate-800 dark:text-slate-200 mt-1">--</p>
-            </div>
-            <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
-              <span class="text-slate-400 font-medium uppercase text-[10px] block">Spatial Distance Offset</span>
-              <p id="mapDistance" class="font-mono font-bold text-slate-800 dark:text-slate-200 mt-1">--</p>
-            </div>
-          </div>
-
+          <button type="button" onclick="runAudit()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-2.5 px-4 rounded-xl shadow-xs transition">
+            🔍 Check Road &amp; Verify Bill
+          </button>
         </div>
       </div>
-
-      <!-- TAB 3: SCHEDULE OF RATES (BOQ) TABLE -->
-      <div id="tabContent3" class="hidden space-y-4">
-        <div class="bg-white dark:bg-[#0d1424] p-5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xs">
-          
-          <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
-            <div>
-              <h4 class="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-white flex items-center space-x-1.5">
-                <i class="fa-solid fa-table text-blue-500"></i>
-                <span>Tender Bill of Quantities (BOQ) vs. Contractor Invoiced Rates</span>
-              </h4>
-              <p class="text-xs text-slate-500 mt-0.5">Strict compliance audit against CPWD / State Schedule of Rates (SoR) and sanctioned ceilings.</p>
-            </div>
-            <span class="text-xs font-mono font-medium text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">Itemized Audit</span>
-          </div>
-
-          <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
-            <table class="w-full text-left text-xs divide-y divide-slate-200 dark:divide-slate-800">
-              <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
-                <tr>
-                  <th class="py-3 px-3.5">Item Code</th>
-                  <th class="py-3 px-3.5">Material Description</th>
-                  <th class="py-3 px-3.5 text-right">Claimed Qty</th>
-                  <th class="py-3 px-3.5 text-right">Sanctioned Qty</th>
-                  <th class="py-3 px-3.5 text-right">Billed Rate</th>
-                  <th class="py-3 px-3.5 text-right">Approved SoR Rate</th>
-                  <th class="py-3 px-3.5 text-right">Claim Total</th>
-                  <th class="py-3 px-3.5 text-center">Audit Status</th>
-                </tr>
-              </thead>
-              <tbody id="boqTableBody" class="divide-y divide-slate-100 dark:divide-slate-800/80 bg-white dark:bg-[#0d1424]">
-                <!-- Populated dynamically via JS -->
-              </tbody>
-            </table>
-          </div>
-
-        </div>
-      </div>
-
     </section>
 
-  </div>
-
-  <!-- FOOTER -->
-  <footer class="mt-auto border-t border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0d1424] py-4 text-center text-xs text-slate-400">
-    <div class="max-w-[1720px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-      <div class="flex items-center space-x-2">
-        <span class="font-bold text-slate-700 dark:text-slate-300">Nirman-Drishti</span>
-        <span>&bull;</span>
-        <span>Digital Public Infrastructure for Public Works Integrity</span>
+    <!-- STEP 2: FINAL VERDICT BANNER -->
+    <section id="verdictBox" class="rounded-xl border p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <span id="verdictBadge" class="inline-block text-xs font-bold uppercase px-2.5 py-0.5 rounded-full mb-1">--</span>
+        <h2 id="verdictTitle" class="text-lg font-bold">--</h2>
+        <p id="verdictDesc" class="text-xs sm:text-sm mt-0.5 opacity-90">--</p>
       </div>
-      <div class="font-mono text-[11px] text-slate-500">
-        Powered by Google Cloud &bull; Vertex AI &bull; Gemini 2.0
+      <div class="sm:text-right shrink-0">
+        <span class="block text-[11px] uppercase font-semibold opacity-75">Fraud Risk Score</span>
+        <span id="riskText" class="text-2xl font-extrabold font-mono">--</span>
       </div>
-    </div>
-  </footer>
+    </section>
 
-  <!-- SCRIPT ENGINE -->
+    <!-- 3 SIMPLE CHECK CARDS -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Check 1: GPS -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-2">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-900">📍 1. GPS Geofence Check</h3>
+          <span id="gpsBadge" class="text-xs font-bold px-2 py-0.5 rounded">--</span>
+        </div>
+        <p class="text-xs text-slate-500">Checks if the photo was clicked within <b>500 meters</b> of the approved road site.</p>
+        <div class="bg-slate-50 rounded-lg p-3 text-xs space-y-1 font-mono">
+          <div>Govt Site: <b>14.2812, 74.4531</b></div>
+          <div>Photo GPS: <b id="outPhotoGps">--</b></div>
+          <div>Distance : <b id="outDistance">--</b></div>
+        </div>
+        <p id="gpsReason" class="text-xs font-medium">--</p>
+      </div>
+
+      <!-- Check 2: Computer Vision -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-2">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-900">👁️ 2. Computer Vision Check</h3>
+          <span id="visionBadge" class="text-xs font-bold px-2 py-0.5 rounded">--</span>
+        </div>
+        <p class="text-xs text-slate-500">Analyzes road surface pixels to verify <b>Black Tar Asphalt</b> vs <b>Unpaved Gravel/Mud</b>.</p>
+        <div class="bg-slate-50 rounded-lg p-3 text-xs space-y-1">
+          <div>Claimed: <b id="outClaimedStage">--</b></div>
+          <div>Detected: <b id="outDetectedStage">--</b></div>
+          <div class="text-[11px] text-slate-500 font-mono" id="outPixelStats">--</div>
+        </div>
+        <p id="visionReason" class="text-xs font-medium">--</p>
+      </div>
+
+      <!-- Check 3: Bill Check -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-2">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-900">💰 3. Govt Bill Rate Check</h3>
+          <span id="billBadge" class="text-xs font-bold px-2 py-0.5 rounded">--</span>
+        </div>
+        <p class="text-xs text-slate-500">Compares contractor's billed rate &amp; quantity against the fixed Government Rate.</p>
+        <div class="bg-slate-50 rounded-lg p-3 text-xs space-y-1 font-mono">
+          <div>Contractor Bill: <b id="outClaimedAmt">--</b></div>
+          <div>Govt Valid Max : <b>₹48,75,000</b></div>
+          <div>Overcharged    : <b id="outOvercharge">--</b></div>
+        </div>
+        <p id="billReason" class="text-xs font-medium">--</p>
+      </div>
+    </section>
+
+    <!-- SIMPLE LIVE MAP -->
+    <section class="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+        <h3 class="text-sm font-bold text-slate-900">🗺️ Live GPS Geofence Map</h3>
+        <div class="flex items-center gap-4 text-xs text-slate-600">
+          <span>🔵 Blue Circle = Approved Govt Road (500m)</span>
+          <span>🟢/🔴 Dot = Contractor Photo Location</span>
+        </div>
+      </div>
+      <div id="map" class="w-full h-72 rounded-lg border border-slate-200 z-0"></div>
+    </section>
+
+  </main>
+
   <script>
-    const CLAIMS_DATA = {
-      "CLM-001": {
-        id: "CLM-2026-001",
-        tender_id: "PMGSY-2026-KA-491",
-        project_name: "Upgradation of Rural Link Road from Honnavar to Karki Village (1.8 km)",
-        department: "Public Works Department (PWD)",
-        scheme: "PMGSY (Pradhan Mantri Gram Sadak Yojana)",
-        contractor: "Shree Balaji Infra Projects Pvt Ltd",
-        budget_lakhs: "Rs. 48.0 Lakhs",
-        claimed_lakhs: "Rs. 48.00 Lakhs",
-        flagged_lakhs: "Rs. 48.00 Lakhs",
-        savings_tag: "Saved Rs. 48.00L (100%)",
-        mb_ref: "MB-PWD-KA/2026/Vol-IV/Pg-112",
-        photo_filename: "road_wbm_unpaved.jpg",
-        image_src: "assets/road_wbm_unpaved.jpg",
-        verdict: "REJECTED",
-        verdict_title: "CRITICAL FRAUD DETECTED — PAYMENT BLOCKED",
-        risk_score: "100.0/100",
-        summary: "Claim rejected due to 4 critical violations: 11.5 km geofence breach, bituminous wear coat absent (raw gravel visible), Rs. 88,000/MT rate inflation on bitumen vs Rs. 65,000/MT SoR, and Rs. 2.25L unsanctioned phantom item. All fund releases halted.",
-        stage_detected: "Compacted WBM Gravel Base (Unpaved)",
-        geofence_status: "VIOLATION (11,780m away)",
-        geofence_verified: false,
-        observations: [
-          "Compacted Water Bound Macadam (WBM) coarse aggregate sub-base confirmed on site.",
-          "Final Bituminous Concrete (BC) wearing coat claimed as 100% finished is physically absent.",
-          "EXIF coordinates verify evidence was captured 11.7 km outside sanctioned tender alignment."
-        ],
-        discrepancies: [
-          { cat: "GEO_TAMPERING", sev: "CRITICAL", desc: "Photo coordinates (14.3650, 74.5200) are 11,780m away from site. Exceeds 500m geofence perimeter.", amt: "Rs. 4,800,000.00" },
-          { cat: "VISION_MISMATCH", sev: "CRITICAL", desc: "Photographic evidence shows raw gravel. Bituminous wearing coat claimed 100% finished is absent.", amt: "Rs. 2,160,000.00" },
-          { cat: "RATE_INFLATION", sev: "HIGH", desc: "Bitumen 60/70 billed at Rs. 88,000/MT vs approved SoR rate of Rs. 65,000/MT (Excess: Rs. 23,000/MT).", amt: "Rs. 2,530,000.00" },
-          { cat: "QUANTITY_OVERCLAIM", sev: "CRITICAL", desc: "Billed 110 MT bitumen exceeds sanctioned ceiling 75 MT by 35 MT.", amt: "Rs. 2,275,000.00" },
-          { cat: "QUANTITY_OVERCLAIM", sev: "CRITICAL", desc: "Unsanctioned / Phantom item 'PHANTOM-999' (Paver blocks). Not in approved tender BOQ.", amt: "Rs. 225,000.00" }
-        ],
-        crypto_hash: "8e4077c677cfde0a130784e47cb7ce1de6c3ff04a427c872722c576d12fb0e8f",
-        tender_lat: 14.2812,
-        tender_lng: 74.4531,
-        photo_lat: 14.3650,
-        photo_lng: 74.5200,
-        distance_meters: "11,780.4m",
-        boq_items: [
-          { code: "R-101", desc: "Earthwork excavation & sub-grade prep", c_qty: "3,500.0 cum", s_qty: "3,500.0 cum", b_rate: "Rs. 180.00", s_rate: "Rs. 180.00", total: "Rs. 630,000.00", status: "MATCH" },
-          { code: "R-102", desc: "Granular Sub-Base (GSB) 150mm", c_qty: "1,800.0 cum", s_qty: "1,800.0 cum", b_rate: "Rs. 650.00", s_rate: "Rs. 650.00", total: "Rs. 1,170,000.00", status: "MATCH" },
-          { code: "R-103", desc: "Water Bound Macadam (WBM) Gr-III", c_qty: "1,200.0 cum", s_qty: "1,200.0 cum", b_rate: "Rs. 820.00", s_rate: "Rs. 820.00", total: "Rs. 984,000.00", status: "MATCH" },
-          { code: "R-104", desc: "Bituminous Concrete (BC) 25mm", c_qty: "110.0 MT", s_qty: "75.0 MT", b_rate: "Rs. 88,000.00", s_rate: "Rs. 65,000.00", total: "Rs. 9,680,000.00", status: "OVERCHARGE" },
-          { code: "PHANTOM-999", desc: "Roadside Paver Blocks (Unsanctioned)", c_qty: "500.0 m", s_qty: "0.0 m", b_rate: "Rs. 450.00", s_rate: "N/A", total: "Rs. 225,000.00", status: "PHANTOM" }
-        ]
-      },
-      "CLM-002": {
-        id: "CLM-2026-002",
-        tender_id: "JJM-2026-MH-102",
-        project_name: "Solar Dual Pump Borehole & Overhead Storage at PHC Shirwal",
-        department: "Rural Water Supply & Sanitation Department",
-        scheme: "Jal Jeevan Mission (JJM)",
-        contractor: "Apex Green Power Systems LLP",
-        budget_lakhs: "Rs. 14.5 Lakhs",
-        claimed_lakhs: "Rs. 14.50 Lakhs",
-        flagged_lakhs: "Rs. 0.00 Lakhs",
-        savings_tag: "Zero Discrepancy",
-        mb_ref: "MB-JJM-MH/2026/Vol-I/Pg-48",
-        photo_filename: "solar_pump_verified.jpg",
-        image_src: "assets/solar_pump_verified.jpg",
-        verdict: "APPROVED",
-        verdict_title: "SAFE FOR DISBURSEMENT — AUDIT VERIFIED",
-        risk_score: "0.0/100",
-        summary: "Site visual evidence matches claimed milestone. Coordinates verified within 28.3m of sanctioned tender site. All billed rates strictly adhere to approved State Schedule of Rates. Recommended for automated treasury disbursement.",
-        stage_detected: "Fully Commissioned & Operational",
-        geofence_status: "VERIFIED (Within 28.3m)",
-        geofence_verified: true,
-        observations: [
-          "5HP solar panel array with MNRE approved charge controller confirmed on site.",
-          "Submersible borehole pump and elevated 10kL HDPE tank installed & fully operational.",
-          "EXIF coordinates match within 28 meters of rural health center perimeter."
-        ],
-        discrepancies: [],
-        crypto_hash: "a49df3328e19b88cf1128c99276d4e519c882103842183cfa119934bb0124310",
-        tender_lat: 18.1345,
-        tender_lng: 73.9876,
-        photo_lat: 18.1347,
-        photo_lng: 73.9878,
-        distance_meters: "28.3m",
-        boq_items: [
-          { code: "W-201", desc: "Borewell drilling 150mm dia to 120m", c_qty: "120.0 m", s_qty: "120.0 m", b_rate: "Rs. 1,250.00", s_rate: "Rs. 1,250.00", total: "Rs. 150,000.00", status: "MATCH" },
-          { code: "W-202", desc: "5 HP Solar Submersible Pump & Controller", c_qty: "1.0 set", s_qty: "1.0 set", b_rate: "Rs. 380,000.00", s_rate: "Rs. 380,000.00", total: "Rs. 380,000.00", status: "MATCH" },
-          { code: "W-203", desc: "Elevated HDPE Storage Tank 10,000L", c_qty: "1.0 nos", s_qty: "1.0 nos", b_rate: "Rs. 420,000.00", s_rate: "Rs. 420,000.00", total: "Rs. 420,000.00", status: "MATCH" },
-          { code: "W-204", desc: "Distribution network & chlorination doser", c_qty: "800.0 m", s_qty: "800.0 m", b_rate: "Rs. 625.00", s_rate: "Rs. 625.00", total: "Rs. 500,000.00", status: "MATCH" }
-        ]
-      },
-      "CLM-003": {
-        id: "CLM-2026-003",
-        tender_id: "MPLADS-2026-DL-088",
-        project_name: "Model Community Skill & Anganwadi Center, Najafgarh",
-        department: "Municipal Corporation of Delhi (MCD)",
-        scheme: "MPLADS (Members of Parliament Local Area Development)",
-        contractor: "Capital Urban Builders Ltd",
-        budget_lakhs: "Rs. 65.0 Lakhs",
-        claimed_lakhs: "Rs. 32.50 Lakhs",
-        flagged_lakhs: "Rs. 3.15 Lakhs",
-        savings_tag: "Withheld Rs. 3.15L (Inflation)",
-        mb_ref: "MB-MCD/2026/Najaf/Pg-85",
-        photo_filename: "building_frame_stage.jpg",
-        image_src: "assets/building_frame_stage.jpg",
-        verdict: "VIGILANCE_HOLD",
-        verdict_title: "WITHHELD FOR EXECUTIVE SCRUTINY (Rate Inflation)",
-        risk_score: "15.0/100",
-        summary: "Physical RCC frame casting verified on site within bounds. However, contractor inflated RCC M25 concrete rate from Rs. 6,400 to Rs. 8,200/cum. Overcharge of Rs. 3.15 Lakhs withheld pending Executive Engineer review.",
-        stage_detected: "RCC Frame & Column Superstructure (Milestone 1)",
-        geofence_status: "VERIFIED (Within 31.4m)",
-        geofence_verified: true,
-        observations: [
-          "Reinforced cement concrete column framework verified in accordance with Milestone 1.",
-          "GPS coordinates match within 31.4m of Najafgarh ward parcel.",
-          "Rate disparity flagged on structural concrete line items."
-        ],
-        discrepancies: [
-          { cat: "RATE_INFLATION", sev: "HIGH", desc: "Rate Inflation for RCC M25: Billed at Rs. 8,200.00/cum vs SoR rate Rs. 6,400.00/cum (Excess: Rs. 1,800/cum).", amt: "Rs. 315,000.00" }
-        ],
-        crypto_hash: "55fce21890cd123490bca87123ef617834510091238472619082341908234111",
-        tender_lat: 28.6092,
-        tender_lng: 76.9854,
-        photo_lat: 28.6094,
-        photo_lng: 76.9856,
-        distance_meters: "31.4m",
-        boq_items: [
-          { code: "C-301", desc: "Reinforced Cement Concrete (RCC M25)", c_qty: "175.0 cum", s_qty: "350.0 cum", b_rate: "Rs. 8,200.00", s_rate: "Rs. 6,400.00", total: "Rs. 1,435,000.00", status: "OVERCHARGE" },
-          { code: "C-303", desc: "TMT FE-550D Reinforcement Steel", c_qty: "16.0 MT", s_qty: "32.0 MT", b_rate: "Rs. 70,000.00", s_rate: "Rs. 70,000.00", total: "Rs. 1,120,000.00", status: "MATCH" }
-        ]
-      }
+    const SITE = {
+      name: "Honnavar Village Link Road (1.8 km)",
+      lat: 14.2812,
+      lng: 74.4531,
+      radiusM: 500,
+      govtRate: 65000,
+      govtQty: 75
     };
 
-    const TENDERS_SPEC = {
-      "PMGSY-2026-KA-491": {
-        tender_id: "PMGSY-2026-KA-491",
-        project_name: "Upgradation of Rural Link Road from Honnavar to Karki Village (1.8 km)",
-        department: "Public Works Department (PWD)",
-        scheme: "PMGSY (Pradhan Mantri Gram Sadak Yojana)",
-        contractor: "Shree Balaji Infra Projects Pvt Ltd",
-        budget_inr: 4800000,
-        budget_lakhs: "Rs. 48.0 Lakhs",
-        target_lat: 14.2812,
-        target_lng: 74.4531,
-        radius_m: 500,
-        primary_code: "R-104",
-        primary_desc: "Bituminous Concrete (BC) 25mm",
-        primary_unit: "MT",
-        sanctioned_qty: 75,
-        approved_rate: 65000,
-        base_items: [
-          { code: "R-101", desc: "Earthwork excavation & sub-grade prep", c_qty: "3,500.0 cum", s_qty: "3,500.0 cum", b_rate: "Rs. 180.00", s_rate: "Rs. 180.00", total: "Rs. 630,000.00", status: "MATCH", raw_total: 630000 },
-          { code: "R-102", desc: "Granular Sub-Base (GSB) 150mm", c_qty: "1,800.0 cum", s_qty: "1,800.0 cum", b_rate: "Rs. 650.00", s_rate: "Rs. 650.00", total: "Rs. 1,170,000.00", status: "MATCH", raw_total: 1170000 },
-          { code: "R-103", desc: "Water Bound Macadam (WBM) Gr-III", c_qty: "1,200.0 cum", s_qty: "1,200.0 cum", b_rate: "Rs. 820.00", s_rate: "Rs. 820.00", total: "Rs. 984,000.00", status: "MATCH", raw_total: 984000 }
-        ]
-      },
-      "JJM-2026-MH-102": {
-        tender_id: "JJM-2026-MH-102",
-        project_name: "Solar Dual Pump Borehole & Overhead Storage at PHC Shirwal",
-        department: "Rural Water Supply & Sanitation Department",
-        scheme: "Jal Jeevan Mission (JJM)",
-        contractor: "Apex Green Power Systems LLP",
-        budget_inr: 1450000,
-        budget_lakhs: "Rs. 14.5 Lakhs",
-        target_lat: 18.1345,
-        target_lng: 73.9876,
-        radius_m: 300,
-        primary_code: "W-204",
-        primary_desc: "Distribution network & chlorination doser",
-        primary_unit: "m",
-        sanctioned_qty: 800,
-        approved_rate: 625,
-        base_items: [
-          { code: "W-201", desc: "Borewell drilling 150mm dia to 120m", c_qty: "120.0 m", s_qty: "120.0 m", b_rate: "Rs. 1,250.00", s_rate: "Rs. 1,250.00", total: "Rs. 150,000.00", status: "MATCH", raw_total: 150000 },
-          { code: "W-202", desc: "5 HP Solar Submersible Pump & Controller", c_qty: "1.0 set", s_qty: "1.0 set", b_rate: "Rs. 380,000.00", s_rate: "Rs. 380,000.00", total: "Rs. 380,000.00", status: "MATCH", raw_total: 380000 },
-          { code: "W-203", desc: "Elevated HDPE Storage Tank 10,000L", c_qty: "1.0 nos", s_qty: "1.0 nos", b_rate: "Rs. 420,000.00", s_rate: "Rs. 420,000.00", total: "Rs. 420,000.00", status: "MATCH", raw_total: 420000 }
-        ]
-      },
-      "MPLADS-2026-DL-088": {
-        tender_id: "MPLADS-2026-DL-088",
-        project_name: "Model Community Skill & Anganwadi Center, Najafgarh",
-        department: "Municipal Corporation of Delhi (MCD)",
-        scheme: "MPLADS (Members of Parliament Local Area Development)",
-        contractor: "Capital Urban Builders Ltd",
-        budget_inr: 6500000,
-        budget_lakhs: "Rs. 65.0 Lakhs",
-        target_lat: 28.6092,
-        target_lng: 76.9854,
-        radius_m: 400,
-        primary_code: "C-301",
-        primary_desc: "Reinforced Cement Concrete (RCC M25)",
-        primary_unit: "cum",
-        sanctioned_qty: 350,
-        approved_rate: 6400,
-        base_items: [
-          { code: "C-303", desc: "TMT FE-550D Reinforcement Steel", c_qty: "16.0 MT", s_qty: "32.0 MT", b_rate: "Rs. 70,000.00", s_rate: "Rs. 70,000.00", total: "Rs. 1,120,000.00", status: "MATCH", raw_total: 1120000 }
-        ]
-      }
-    };
-
-    let claimOrder = ["CLM-001", "CLM-002", "CLM-003"];
-    let activeKey = "CLM-001";
-    let activeClaim = CLAIMS_DATA[activeKey];
+    let currentImgSrc = "assets/road_wbm_unpaved.jpg";
+    let currentFilename = "road_wbm_unpaved.jpg";
+    let lastReport = null;
     let map = null;
-    let markersLayer = null;
-    let liveUploadedDataUrl = "assets/road_wbm_unpaved.jpg";
-    let liveUploadedFilename = "road_wbm_unpaved.jpg";
-    let liveUploadCounter = 1;
+    let mapLayer = null;
 
-    function toggleUploadPanel(show) {
-      const panel = document.getElementById("liveUploadPanel");
-      if (!panel) return;
-      if (show) {
-        panel.classList.remove("hidden");
-        panel.scrollIntoView({ behavior: "smooth", block: "start" });
-      } else {
-        panel.classList.add("hidden");
-      }
-    }
-
-    function onLiveTenderChange() {
-      const tid = document.getElementById("liveTenderSelect").value;
-      const spec = TENDERS_SPEC[tid];
-      document.getElementById("liveQtyLabel").innerText = `${spec.primary_code} Qty (Max ${spec.sanctioned_qty} ${spec.primary_unit})`;
-      document.getElementById("liveRateLabel").innerText = `Billed Rate (SoR: Rs.${spec.approved_rate})`;
-      document.getElementById("liveQtyInput").value = spec.sanctioned_qty;
-      document.getElementById("liveRateInput").value = spec.approved_rate;
-      setGpsPreset("inside");
-    }
-
-    function setGpsPreset(mode) {
-      const tid = document.getElementById("liveTenderSelect").value;
-      const spec = TENDERS_SPEC[tid];
-      if (mode === "inside") {
-        document.getElementById("liveLatInput").value = (spec.target_lat + 0.0002).toFixed(4);
-        document.getElementById("liveLngInput").value = (spec.target_lng + 0.0002).toFixed(4);
-        document.getElementById("exifStatusMsg").innerText = "📍 Preset: Inside 500m sanctioned site boundary (~31m offset).";
-      } else if (mode === "outside") {
-        document.getElementById("liveLatInput").value = (spec.target_lat + 0.0838).toFixed(4);
-        document.getElementById("liveLngInput").value = (spec.target_lng + 0.0669).toFixed(4);
-        document.getElementById("exifStatusMsg").innerText = "🚨 Preset: Spoofed site photo 11.7 km outside geofence.";
-      } else if (mode === "device" && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          document.getElementById("liveLatInput").value = pos.coords.latitude.toFixed(5);
-          document.getElementById("liveLngInput").value = pos.coords.longitude.toFixed(5);
-          document.getElementById("exifStatusMsg").innerText = `📡 Live Device GPS captured (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}).`;
-        }, () => {
-          document.getElementById("exifStatusMsg").innerText = "⚠️ Location permission denied — enter coordinates manually.";
-        });
-      }
-    }
-
-    function setBillPreset(mode) {
-      const tid = document.getElementById("liveTenderSelect").value;
-      const spec = TENDERS_SPEC[tid];
-      if (mode === "honest") {
-        document.getElementById("liveQtyInput").value = spec.sanctioned_qty;
-        document.getElementById("liveRateInput").value = spec.approved_rate;
-      } else {
-        document.getElementById("liveQtyInput").value = Math.round(spec.sanctioned_qty * 1.46);
-        document.getElementById("liveRateInput").value = Math.round(spec.approved_rate * 1.35);
-      }
-    }
-
-    function generateSampleTarRoadDataUrl() {
+    // Generate clean realistic finished black tar road sample image on canvas
+    function makeTarRoadSample() {
       const c = document.createElement("canvas");
-      c.width = 640;
-      c.height = 480;
+      c.width = 640; c.height = 420;
       const ctx = c.getContext("2d");
-      // Sky
-      const sky = ctx.createLinearGradient(0, 0, 0, 175);
-      sky.addColorStop(0, "#60a5fa");
-      sky.addColorStop(1, "#dbeafe");
-      ctx.fillStyle = sky;
-      ctx.fillRect(0, 0, 640, 175);
-      // Rural green shoulders
-      ctx.fillStyle = "#3f6212";
-      ctx.fillRect(0, 175, 640, 305);
-      // Compacted earthen berm
-      ctx.fillStyle = "#78716c";
-      ctx.beginPath();
-      ctx.moveTo(235, 175); ctx.lineTo(405, 175); ctx.lineTo(635, 480); ctx.lineTo(5, 480);
-      ctx.closePath(); ctx.fill();
-      // Fresh dark bituminous asphalt wearing surface
+      ctx.fillStyle = "#93c5fd"; ctx.fillRect(0, 0, 640, 150);
+      ctx.fillStyle = "#4d7c0f"; ctx.fillRect(0, 150, 640, 270);
       ctx.fillStyle = "#33363b";
       ctx.beginPath();
-      ctx.moveTo(260, 175); ctx.lineTo(380, 175); ctx.lineTo(590, 480); ctx.lineTo(50, 480);
+      ctx.moveTo(250, 150); ctx.lineTo(390, 150); ctx.lineTo(590, 420); ctx.lineTo(50, 420);
       ctx.closePath(); ctx.fill();
-      // Subtle asphalt aggregate texture
-      for (let i = 0; i < 1800; i++) {
-        const y = 180 + Math.random() * 295;
-        const spread = (y - 175) / 305;
-        const halfW = 60 + spread * 210;
-        const x = 320 + (Math.random() * 2 - 1) * halfW;
-        const v = 42 + Math.floor(Math.random() * 26);
+      for (let i = 0; i < 1200; i++) {
+        const y = 155 + Math.random() * 260;
+        const half = 65 + ((y - 150) / 270) * 195;
+        const x = 320 + (Math.random() * 2 - 1) * half;
+        const v = 44 + Math.floor(Math.random() * 22);
         ctx.fillStyle = `rgb(${v},${v},${v + 2})`;
         ctx.fillRect(x, y, 2, 2);
       }
-      // White edge markings & dashed center line
-      ctx.strokeStyle = "#f8fafc";
-      ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.moveTo(266, 180); ctx.lineTo(74, 480); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(374, 180); ctx.lineTo(566, 480); ctx.stroke();
-      ctx.setLineDash([18, 14]);
-      ctx.beginPath(); ctx.moveTo(320, 185); ctx.lineTo(320, 480); ctx.stroke();
+      ctx.strokeStyle = "#f8fafc"; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(258, 155); ctx.lineTo(75, 420); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(382, 155); ctx.lineTo(565, 420); ctx.stroke();
+      ctx.setLineDash([16, 14]);
+      ctx.beginPath(); ctx.moveTo(320, 160); ctx.lineTo(320, 420); ctx.stroke();
       return c.toDataURL("image/jpeg", 0.92);
     }
 
-    function showPreviewThumb(src, label) {
-      document.getElementById("uploadPreviewImg").src = src;
-      document.getElementById("uploadPreviewBadge").innerText = label;
-      document.getElementById("uploadPreviewWrap").classList.remove("hidden");
-      document.getElementById("uploadEmptyPrompt").classList.add("hidden");
-    }
-
-    function loadSamplePhoto(kind) {
-      document.getElementById("liveTenderSelect").value = "PMGSY-2026-KA-491";
-      onLiveTenderChange();
-      document.getElementById("liveMilestoneSelect").value = "FINISHED_TAR";
-      if (kind === "gravel") {
-        liveUploadedDataUrl = "assets/road_wbm_unpaved.jpg";
-        liveUploadedFilename = "sample_unpaved_gravel.jpg";
-        showPreviewThumb(liveUploadedDataUrl, "Sample: Unpaved WBM Gravel");
-        setGpsPreset("outside");
-        setBillPreset("inflated");
-        document.getElementById("exifStatusMsg").innerText = "🪨 Loaded Unpaved Gravel sample (11.7km spoofed GPS + inflated bitumen rate). Click Run!";
+    function loadDemo(type) {
+      document.getElementById("stageSelect").value = "FINISHED_TAR";
+      if (type === "fraud") {
+        currentImgSrc = "assets/road_wbm_unpaved.jpg";
+        currentFilename = "unpaved_gravel_road.jpg";
+        document.getElementById("previewImg").src = currentImgSrc;
+        document.getElementById("latInput").value = "14.3650";
+        document.getElementById("lngInput").value = "74.5200";
+        document.getElementById("rateInput").value = "88000";
+        document.getElementById("qtyInput").value = "110";
+        document.getElementById("photoStatus").innerText = "Loaded Demo 1: Unpaved gravel photo + 11.7 km away + inflated bill.";
       } else {
-        liveUploadedDataUrl = generateSampleTarRoadDataUrl();
-        liveUploadedFilename = "verified_bituminous_tar_road.jpg";
-        showPreviewThumb(liveUploadedDataUrl, "Sample: Finished Black Tar Road");
-        setGpsPreset("inside");
-        setBillPreset("honest");
-        document.getElementById("exifStatusMsg").innerText = "🛣️ Loaded Verified Black Tar Road sample (within 31m geofence + Govt SoR rate). Click Run!";
+        currentImgSrc = makeTarRoadSample();
+        currentFilename = "finished_black_tar_road.jpg";
+        document.getElementById("previewImg").src = currentImgSrc;
+        document.getElementById("latInput").value = "14.2814";
+        document.getElementById("lngInput").value = "74.4533";
+        document.getElementById("rateInput").value = "65000";
+        document.getElementById("qtyInput").value = "75";
+        document.getElementById("photoStatus").innerText = "Loaded Demo 2: Finished black tar road + at approved site + Govt rate.";
       }
+      runAudit();
     }
 
-    function parseExifGPSFromArrayBuffer(buffer) {
+    function setGps(mode) {
+      if (mode === "inside") {
+        document.getElementById("latInput").value = "14.2814";
+        document.getElementById("lngInput").value = "74.4533";
+      } else if (mode === "outside") {
+        document.getElementById("latInput").value = "14.3650";
+        document.getElementById("lngInput").value = "74.5200";
+      } else if (mode === "mygps" && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(p => {
+          document.getElementById("latInput").value = p.coords.latitude.toFixed(5);
+          document.getElementById("lngInput").value = p.coords.longitude.toFixed(5);
+          runAudit();
+        });
+        return;
+      }
+      runAudit();
+    }
+
+    // Read binary EXIF GPS from JPEG if present
+    function extractExifGps(buffer) {
       try {
-        const view = new DataView(buffer);
-        if (view.byteLength < 12 || view.getUint16(0, false) !== 0xFFD8) return null;
-        let offset = 2;
-        while (offset + 4 < view.byteLength) {
-          const marker = view.getUint16(offset, false);
-          offset += 2;
+        const v = new DataView(buffer);
+        if (v.byteLength < 12 || v.getUint16(0, false) !== 0xFFD8) return null;
+        let off = 2;
+        while (off + 4 < v.byteLength) {
+          const marker = v.getUint16(off, false); off += 2;
           if (marker === 0xFFE1) {
-            const length = view.getUint16(offset, false);
-            if (view.getUint32(offset + 2, false) !== 0x45786966) { offset += length; continue; }
-            const tiffStart = offset + 8;
-            const little = view.getUint16(tiffStart, false) === 0x4949;
-            const firstIfd = tiffStart + view.getUint32(tiffStart + 4, little);
-            const entries = view.getUint16(firstIfd, little);
-            let gpsIfd = null;
-            for (let i = 0; i < entries; i++) {
-              const entry = firstIfd + 2 + i * 12;
-              if (view.getUint16(entry, little) === 0x8825) {
-                gpsIfd = tiffStart + view.getUint32(entry + 8, little);
-                break;
-              }
+            const len = v.getUint16(off, false);
+            if (v.getUint32(off + 2, false) !== 0x45786966) { off += len; continue; }
+            const tiff = off + 8;
+            const le = v.getUint16(tiff, false) === 0x4949;
+            const ifd0 = tiff + v.getUint32(tiff + 4, le);
+            const count = v.getUint16(ifd0, le);
+            let gpsOff = null;
+            for (let i = 0; i < count; i++) {
+              const e = ifd0 + 2 + i * 12;
+              if (v.getUint16(e, le) === 0x8825) { gpsOff = tiff + v.getUint32(e + 8, le); break; }
             }
-            if (!gpsIfd) return null;
-            const gpsEntries = view.getUint16(gpsIfd, little);
+            if (!gpsOff) return null;
+            const gCount = v.getUint16(gpsOff, le);
             let latRef = "N", lngRef = "E", lat = null, lng = null;
-            const readDms = (valOffset) => {
-              const d = view.getUint32(valOffset, little) / Math.max(1, view.getUint32(valOffset + 4, little));
-              const m = view.getUint32(valOffset + 8, little) / Math.max(1, view.getUint32(valOffset + 12, little));
-              const s = view.getUint32(valOffset + 16, little) / Math.max(1, view.getUint32(valOffset + 20, little));
-              return d + m / 60 + s / 3600;
-            };
-            for (let j = 0; j < gpsEntries; j++) {
-              const ge = gpsIfd + 2 + j * 12;
-              const tag = view.getUint16(ge, little);
-              if (tag === 1) latRef = String.fromCharCode(view.getUint8(ge + 8));
-              else if (tag === 2) lat = readDms(tiffStart + view.getUint32(ge + 8, little));
-              else if (tag === 3) lngRef = String.fromCharCode(view.getUint8(ge + 8));
-              else if (tag === 4) lng = readDms(tiffStart + view.getUint32(ge + 8, little));
+            const dms = p => (v.getUint32(p, le) / Math.max(1, v.getUint32(p + 4, le)))
+              + (v.getUint32(p + 8, le) / Math.max(1, v.getUint32(p + 12, le))) / 60
+              + (v.getUint32(p + 16, le) / Math.max(1, v.getUint32(p + 20, le))) / 3600;
+            for (let j = 0; j < gCount; j++) {
+              const ge = gpsOff + 2 + j * 12;
+              const tag = v.getUint16(ge, le);
+              if (tag === 1) latRef = String.fromCharCode(v.getUint8(ge + 8));
+              else if (tag === 2) lat = dms(tiff + v.getUint32(ge + 8, le));
+              else if (tag === 3) lngRef = String.fromCharCode(v.getUint8(ge + 8));
+              else if (tag === 4) lng = dms(tiff + v.getUint32(ge + 8, le));
             }
             if (lat !== null && lng !== null) {
-              if (latRef === "S") lat = -lat;
-              if (lngRef === "W") lng = -lng;
-              return { lat, lng };
+              return { lat: latRef === "S" ? -lat : lat, lng: lngRef === "W" ? -lng : lng };
             }
             return null;
-          } else if ((marker & 0xFF00) !== 0xFF00) {
-            break;
-          } else {
-            offset += view.getUint16(offset, false);
-          }
+          } else if ((marker & 0xFF00) !== 0xFF00) break;
+          else off += v.getUint16(off, false);
         }
-      } catch (err) {}
+      } catch {}
       return null;
     }
 
-    function handlePhotoUpload(event) {
-      const file = event.target.files && event.target.files[0];
+    function onPhotoSelected(ev) {
+      const file = ev.target.files && ev.target.files[0];
       if (!file) return;
-      liveUploadedFilename = file.name;
-
-      const readerUrl = new FileReader();
-      readerUrl.onload = (e) => {
-        liveUploadedDataUrl = e.target.result;
-        showPreviewThumb(liveUploadedDataUrl, file.name);
+      currentFilename = file.name;
+      const r1 = new FileReader();
+      r1.onload = e => {
+        currentImgSrc = e.target.result;
+        document.getElementById("previewImg").src = currentImgSrc;
+        runAudit();
       };
-      readerUrl.readAsDataURL(file);
+      r1.readAsDataURL(file);
 
-      const readerBuf = new FileReader();
-      readerBuf.onload = (e) => {
-        const gps = parseExifGPSFromArrayBuffer(e.target.result);
-        if (gps && !isNaN(gps.lat) && !isNaN(gps.lng)) {
-          document.getElementById("liveLatInput").value = gps.lat.toFixed(5);
-          document.getElementById("liveLngInput").value = gps.lng.toFixed(5);
-          document.getElementById("exifStatusMsg").innerText = `✅ Camera EXIF GPS Auto-Extracted: ${gps.lat.toFixed(5)}, ${gps.lng.toFixed(5)}`;
+      const r2 = new FileReader();
+      r2.onload = e => {
+        const gps = extractExifGps(e.target.result);
+        if (gps) {
+          document.getElementById("latInput").value = gps.lat.toFixed(5);
+          document.getElementById("lngInput").value = gps.lng.toFixed(5);
+          document.getElementById("photoStatus").innerText = `✅ Extracted GPS from "${file.name}": ${gps.lat.toFixed(4)}, ${gps.lng.toFixed(4)}`;
         } else {
-          document.getElementById("exifStatusMsg").innerText = `📸 Loaded "${file.name}" (No EXIF GPS in file — choose At Site / 11.7km Away / My GPS).`;
+          document.getElementById("photoStatus").innerText = `📸 Uploaded "${file.name}" (No camera GPS inside photo — select GPS button on right).`;
         }
+        runAudit();
       };
-      readerBuf.readAsArrayBuffer(file);
+      r2.readAsArrayBuffer(file);
     }
 
-    function haversineMeters(lat1, lon1, lat2, lon2) {
-      const R = 6371000.0;
-      const toRad = d => (d * Math.PI) / 180.0;
-      const dLat = toRad(lat2 - lat1);
-      const dLon = toRad(lon2 - lon1);
-      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * (Math.sin(dLon / 2) ** 2);
+    // Haversine formula (meters)
+    function getDistanceMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const rad = d => (d * Math.PI) / 180;
+      const dLat = rad(lat2 - lat1);
+      const dLon = rad(lon2 - lon1);
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * (Math.sin(dLon / 2) ** 2);
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
-    async function inspectSurfacePixels(imgSrc) {
-      return new Promise((resolve) => {
+    // Computer Vision: inspect road region pixels for dark neutral asphalt vs brown/tan gravel/soil
+    function analyzeRoadSurface(src) {
+      return new Promise(resolve => {
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.onload = () => {
           const cv = document.createElement("canvas");
-          cv.width = 160;
-          cv.height = 120;
+          cv.width = 160; cv.height = 120;
           const ctx = cv.getContext("2d");
           ctx.drawImage(img, 0, 0, 160, 120);
-          const data = ctx.getImageData(0, 0, 160, 120).data;
-          let asphaltPx = 0, earthyPx = 0, totalPx = 0;
+          const d = ctx.getImageData(0, 0, 160, 120).data;
+          let asphalt = 0, gravel = 0, total = 0;
           for (let y = 42; y < 110; y++) {
             for (let x = 20; x < 140; x++) {
-              const idx = (y * 160 + x) * 4;
-              const r = data[idx], g = data[idx + 1], b = data[idx + 2];
-              const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
-              const chroma = mx - mn;
+              const i = (y * 160 + x) * 4;
+              const r = d[i], g = d[i + 1], b = d[i + 2];
+              const chroma = Math.max(r, g, b) - Math.min(r, g, b);
               const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-              if (Math.abs(r - b) <= 14 && chroma <= 22 && lum >= 18 && lum <= 132) asphaltPx++;
-              if ((r - b) > 14 && lum > 45) earthyPx++;
-              totalPx++;
+              if (Math.abs(r - b) <= 14 && chroma <= 22 && lum >= 18 && lum <= 132) asphalt++;
+              if ((r - b) > 14 && lum > 45) gravel++;
+              total++;
             }
           }
           resolve({
-            asphaltRatio: asphaltPx / Math.max(1, totalPx),
-            earthyRatio: earthyPx / Math.max(1, totalPx)
+            asphaltPct: (asphalt / total) * 100,
+            gravelPct: (gravel / total) * 100
           });
         };
-        img.onerror = () => resolve({ asphaltRatio: 0.05, earthyRatio: 0.65 });
-        img.src = imgSrc;
+        img.onerror = () => resolve({ asphaltPct: 5, gravelPct: 75 });
+        img.src = src;
       });
     }
 
-    async function sha256Hex(text) {
-      if (window.crypto && window.crypto.subtle) {
-        const buf = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
-      }
-      return "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
-    }
+    async function runAudit() {
+      const lat = parseFloat(document.getElementById("latInput").value) || SITE.lat;
+      const lng = parseFloat(document.getElementById("lngInput").value) || SITE.lng;
+      const claimedStage = document.getElementById("stageSelect").value;
+      const rate = Math.max(0, parseFloat(document.getElementById("rateInput").value) || 0);
+      const qty = Math.max(0, parseFloat(document.getElementById("qtyInput").value) || 0);
 
-    const fmtINR = n => "Rs. " + Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      // 1. GPS Check
+      const dist = getDistanceMeters(SITE.lat, SITE.lng, lat, lng);
+      const gpsOk = dist <= SITE.radiusM;
 
-    async function runLiveForensicAudit() {
-      const btn = document.getElementById("runLiveAuditBtn");
-      const logBox = document.getElementById("liveAuditLogBox");
-      btn.disabled = true;
-      logBox.classList.remove("hidden");
-      logBox.innerHTML = `<div>⏳ [1/4] Extracting photo EXIF GPS &amp; running Haversine spherical geofence math...</div>`;
+      // 2. Vision Check
+      const cv = await analyzeRoadSurface(currentImgSrc);
+      const hasBlackTar = !(cv.gravelPct > 28 || cv.asphaltPct < 25);
+      const detectedText = hasBlackTar ? "Black Bituminous Tar Road" : "Unpaved Gravel / Mud Surface";
+      const visionOk = (claimedStage === "GRAVEL_ONLY") ? true : hasBlackTar;
 
-      const tid = document.getElementById("liveTenderSelect").value;
-      const spec = TENDERS_SPEC[tid];
-      const milestoneMode = document.getElementById("liveMilestoneSelect").value;
-      const photoLat = parseFloat(document.getElementById("liveLatInput").value) || spec.target_lat;
-      const photoLng = parseFloat(document.getElementById("liveLngInput").value) || spec.target_lng;
-      const claimedQty = Math.max(0, parseFloat(document.getElementById("liveQtyInput").value) || spec.sanctioned_qty);
-      const billedRate = Math.max(0, parseFloat(document.getElementById("liveRateInput").value) || spec.approved_rate);
-      const geminiKey = (document.getElementById("liveGeminiKey").value || "").trim();
+      // 3. Bill Check
+      const claimedTotal = rate * qty;
+      const approvedMax = SITE.govtRate * SITE.govtQty;
+      const rateExtra = Math.max(0, rate - SITE.govtRate) * qty;
+      const qtyExtra = Math.max(0, qty - SITE.govtQty) * SITE.govtRate;
+      const overcharge = Math.max(0, claimedTotal - approvedMax);
+      const billOk = (rate <= SITE.govtRate) && (qty <= SITE.govtQty);
 
-      await new Promise(r => setTimeout(r, 280));
-      const distM = haversineMeters(spec.target_lat, spec.target_lng, photoLat, photoLng);
-      const geoVerified = distM <= spec.radius_m;
-      logBox.innerHTML += `<div>${geoVerified ? "✅" : "🚨"} Geofence Offset: ${distM.toFixed(1)}m vs ${spec.radius_m}m perimeter (${geoVerified ? "VERIFIED" : "GEO_TAMPERING"})</div>`;
-      logBox.innerHTML += `<div>⏳ [2/4] Inspecting road surface material layers (${geminiKey ? "Gemini 2.0 Flash Vision API" : "Computer Vision Chrominance/Luminance Engine"})...</div>`;
-
-      let stageDetected = "";
-      let observations = [];
-      let discrepancies = [];
-      const lineClaimedTotal = claimedQty * billedRate;
-      const baseTotal = spec.base_items.reduce((acc, i) => acc + i.raw_total, 0);
-      const totalClaimedInr = baseTotal + lineClaimedTotal;
-
-      let usedLiveGemini = false;
-      if (geminiKey && liveUploadedDataUrl.startsWith("data:image")) {
-        try {
-          const b64 = liveUploadedDataUrl.split(",")[1];
-          const mime = liveUploadedDataUrl.substring(5, liveUploadedDataUrl.indexOf(";"));
-          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(geminiKey)}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { inline_data: { mime_type: mime, data: b64 } },
-                  { text: `You are an Indian PWD civil forensic auditor. Tender: ${spec.project_name}. Claimed stage: ${milestoneMode}. Return ONLY JSON: {"detected_stage":"string","matches_finished_tar":boolean,"observations":["string"],"discrepancy":"string or null"}` }
-                ]
-              }]
-            })
-          });
-          if (resp.ok) {
-            const rj = await resp.json();
-            let txt = rj.candidates[0].content.parts[0].text.trim().replace(/^```json/, "").replace(/```$/, "").trim();
-            const parsed = JSON.parse(txt);
-            stageDetected = parsed.detected_stage || "Gemini Inspected Stage";
-            observations = parsed.observations || [];
-            if (milestoneMode === "FINISHED_TAR" && !parsed.matches_finished_tar) {
-              discrepancies.push({
-                cat: "VISION_MISMATCH",
-                sev: "CRITICAL",
-                desc: parsed.discrepancy || "Gemini 2.0 Vision detected missing black bituminous wearing surface.",
-                rawAmt: totalClaimedInr * 0.45,
-                amt: fmtINR(totalClaimedInr * 0.45)
-              });
-            }
-            usedLiveGemini = true;
-          }
-        } catch (e) {}
-      }
-
-      if (!usedLiveGemini) {
-        await new Promise(r => setTimeout(r, 320));
-        const cv = await inspectSurfacePixels(liveUploadedDataUrl);
-        if (tid === "PMGSY-2026-KA-491" && milestoneMode === "FINISHED_TAR") {
-          const isUnpaved = cv.earthyRatio > 0.28 || cv.asphaltRatio < 0.25;
-          if (isUnpaved) {
-            stageDetected = "Compacted WBM Gravel / Earth Base (Unpaved)";
-            observations.push(`CV Surface Telemetry: Earth/aggregate index ${(cv.earthyRatio * 100).toFixed(1)}% vs. black asphalt index ${(cv.asphaltRatio * 100).toFixed(1)}%.`);
-            observations.push("Final 25mm Bituminous Concrete (BC) black wearing course claimed as 100% finished is absent.");
-            discrepancies.push({
-              cat: "VISION_MISMATCH",
-              sev: "CRITICAL",
-              desc: "Uploaded photo shows unpaved gravel/earth surface. Bituminous black tar wearing coat claimed 100% finished is absent.",
-              rawAmt: lineClaimedTotal * 0.45,
-              amt: fmtINR(lineClaimedTotal * 0.45)
-            });
-          } else {
-            stageDetected = "Finished Bituminous Concrete (Black Tar) Surface";
-            observations.push(`CV Surface Telemetry: Neutral dark bituminous asphalt index ${(cv.asphaltRatio * 100).toFixed(1)}% confirmed across carriageway.`);
-            observations.push("Continuous paved carriageway surface conforms to PMGSY milestone specifications.");
-          }
-        } else {
-          stageDetected = milestoneMode === "WBM_SUBBASE" ? "Stage 1: WBM Gravel Sub-Base Verified" : "Verified Civic Infrastructure Stage";
-          observations.push(`Uploaded photographic evidence (${liveUploadedFilename}) aligns with reported milestone stage.`);
-        }
-      }
-
-      observations.push(
-        geoVerified
-          ? `Geospatial check passed: Photo coordinates within ${distM.toFixed(1)}m of sanctioned alignment (${spec.radius_m}m limit).`
-          : `EXIF/Coordinate check failed: Photo captured ${(distM / 1000).toFixed(2)} km outside sanctioned tender alignment.`
-      );
-
-      if (!geoVerified) {
-        discrepancies.unshift({
-          cat: "GEO_TAMPERING",
-          sev: "CRITICAL",
-          desc: `Photo coordinates (${photoLat.toFixed(4)}, ${photoLng.toFixed(4)}) are ${distM.toFixed(1)}m away from site. Exceeds ${spec.radius_m}m geofence.`,
-          rawAmt: totalClaimedInr,
-          amt: fmtINR(totalClaimedInr)
-        });
-      }
-
-      await new Promise(r => setTimeout(r, 250));
-      logBox.innerHTML += `<div>⏳ [3/4] Auditing BOQ (${claimedQty} ${spec.primary_unit} @ Rs.${billedRate.toLocaleString("en-IN")} vs SoR Rs.${spec.approved_rate.toLocaleString("en-IN")})...</div>`;
-
-      let primaryStatus = "MATCH";
-      if (billedRate > spec.approved_rate) {
-        primaryStatus = "OVERCHARGE";
-        const excessRateAmt = (billedRate - spec.approved_rate) * claimedQty;
-        discrepancies.push({
-          cat: "RATE_INFLATION",
-          sev: "HIGH",
-          desc: `${spec.primary_desc} billed at Rs. ${billedRate.toLocaleString("en-IN")}/${spec.primary_unit} vs approved SoR rate Rs. ${spec.approved_rate.toLocaleString("en-IN")}/${spec.primary_unit}.`,
-          rawAmt: excessRateAmt,
-          amt: fmtINR(excessRateAmt)
-        });
-      }
-      if (claimedQty > spec.sanctioned_qty) {
-        primaryStatus = "OVERCHARGE";
-        const excessQtyAmt = (claimedQty - spec.sanctioned_qty) * spec.approved_rate;
-        discrepancies.push({
-          cat: "QUANTITY_OVERCLAIM",
-          sev: "CRITICAL",
-          desc: `Billed ${claimedQty} ${spec.primary_unit} exceeds sanctioned ceiling ${spec.sanctioned_qty} ${spec.primary_unit} by ${(claimedQty - spec.sanctioned_qty).toFixed(1)} ${spec.primary_unit}.`,
-          rawAmt: excessQtyAmt,
-          amt: fmtINR(excessQtyAmt)
-        });
-      }
-
+      // Risk Score & Verdict
       let risk = 0;
-      if (!geoVerified) risk += 45;
-      discrepancies.forEach(d => {
-        if (d.cat === "VISION_MISMATCH") risk += 35;
-        else if (d.cat === "RATE_INFLATION") risk += 15;
-        else if (d.cat === "QUANTITY_OVERCLAIM") risk += 25;
-      });
+      if (!gpsOk) risk += 45;
+      if (!visionOk) risk += 35;
+      if (rate > SITE.govtRate) risk += 15;
+      if (qty > SITE.govtQty) risk += 25;
       risk = Math.min(100, risk);
-      const critCount = discrepancies.filter(d => d.sev === "CRITICAL").length;
-      const highCount = discrepancies.filter(d => d.sev === "HIGH").length;
-      const verdict = (critCount > 0 || risk >= 65) ? "REJECTED" : ((highCount > 0 || risk >= 25) ? "VIGILANCE_HOLD" : "APPROVED");
 
-      const rawFlagged = Math.min(totalClaimedInr, discrepancies.reduce((s, d) => s + d.rawAmt, 0));
-      const newKey = `CLM-LIVE-${String(liveUploadCounter++).padStart(2, "0")}`;
-      const hashHex = await sha256Hex(JSON.stringify({ id: newKey, tid, verdict, risk, rawFlagged, ts: new Date().toISOString() }));
+      let verdict = "APPROVED";
+      if (!gpsOk || !visionOk || qty > SITE.govtQty || risk >= 65) verdict = "REJECTED";
+      else if (!billOk) verdict = "HOLD";
 
-      logBox.innerHTML += `<div>✅ [4/4] Verdict: <b>${verdict}</b> (Risk: ${risk.toFixed(1)}/100) • SHA-256 Seal Generated! Updating Cockpit below 👇</div>`;
+      // Update Check 1 UI
+      document.getElementById("outPhotoGps").innerText = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      document.getElementById("outDistance").innerText = dist >= 1000 ? `${(dist / 1000).toFixed(2)} km (${dist.toFixed(0)} m)` : `${dist.toFixed(1)} meters`;
+      const gpsBadge = document.getElementById("gpsBadge");
+      gpsBadge.innerText = gpsOk ? "PASSED" : "FAILED";
+      gpsBadge.className = gpsOk ? "text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800" : "text-xs font-bold px-2 py-0.5 rounded bg-red-100 text-red-800";
+      document.getElementById("gpsReason").innerText = gpsOk
+        ? "✅ Photo was taken inside the 500m approved road site."
+        : "❌ Photo was taken outside the 500m road boundary (Location Spoofing).";
+      document.getElementById("gpsReason").className = gpsOk ? "text-xs font-medium text-emerald-700" : "text-xs font-medium text-red-700";
 
-      CLAIMS_DATA[newKey] = {
-        id: newKey,
-        tender_id: spec.tender_id,
-        project_name: `[LIVE AUDIT] ${spec.project_name}`,
-        department: spec.department,
-        scheme: spec.scheme,
-        contractor: spec.contractor,
-        budget_lakhs: spec.budget_lakhs,
-        claimed_lakhs: `Rs. ${(totalClaimedInr / 100000).toFixed(2)} Lakhs`,
-        flagged_lakhs: `Rs. ${(rawFlagged / 100000).toFixed(2)} Lakhs`,
-        savings_tag: verdict === "APPROVED" ? "Zero Discrepancy" : `Flagged Rs. ${(rawFlagged / 100000).toFixed(2)}L`,
-        mb_ref: `MB-LIVE/2026/${newKey}`,
-        photo_filename: liveUploadedFilename,
-        image_src: liveUploadedDataUrl,
-        verdict: verdict,
-        verdict_title: verdict === "APPROVED" ? "SAFE FOR DISBURSEMENT — LIVE AUDIT VERIFIED" : (verdict === "VIGILANCE_HOLD" ? "WITHHELD FOR EXECUTIVE SCRUTINY (Rate Inflation)" : "CRITICAL FRAUD DETECTED — PAYMENT BLOCKED"),
-        risk_score: `${risk.toFixed(1)}/100`,
-        summary: verdict === "APPROVED"
-          ? `Live uploaded photo (${liveUploadedFilename}) matches claimed milestone (${stageDetected}). Coordinates verified within ${distM.toFixed(1)}m of site and BOQ rates match Govt SoR.`
-          : `Live audit of "${liveUploadedFilename}" flagged ${discrepancies.length} violation(s) totaling Rs. ${(rawFlagged / 100000).toFixed(2)} Lakhs (${stageDetected}; GPS offset ${distM.toFixed(1)}m).`,
-        stage_detected: stageDetected,
-        geofence_status: geoVerified ? `VERIFIED (Within ${distM.toFixed(1)}m)` : `VIOLATION (${distM.toFixed(1)}m away)`,
-        geofence_verified: geoVerified,
-        observations: observations,
-        discrepancies: discrepancies,
-        crypto_hash: hashHex,
-        tender_lat: spec.target_lat,
-        tender_lng: spec.target_lng,
-        photo_lat: photoLat,
-        photo_lng: photoLng,
-        distance_meters: `${distM.toFixed(1)}m`,
-        boq_items: [
-          ...spec.base_items,
-          {
-            code: spec.primary_code,
-            desc: spec.primary_desc,
-            c_qty: `${claimedQty.toFixed(1)} ${spec.primary_unit}`,
-            s_qty: `${spec.sanctioned_qty.toFixed(1)} ${spec.primary_unit}`,
-            b_rate: fmtINR(billedRate),
-            s_rate: fmtINR(spec.approved_rate),
-            total: fmtINR(lineClaimedTotal),
-            status: primaryStatus
-          }
-        ]
-      };
+      // Update Check 2 UI
+      document.getElementById("outClaimedStage").innerText = claimedStage === "FINISHED_TAR" ? "Finished Black Tar Road" : "Stage 1: Gravel Base";
+      document.getElementById("outDetectedStage").innerText = detectedText;
+      document.getElementById("outPixelStats").innerText = `Tar Pixels: ${cv.asphaltPct.toFixed(1)}% | Gravel/Soil Pixels: ${cv.gravelPct.toFixed(1)}%`;
+      const visionBadge = document.getElementById("visionBadge");
+      visionBadge.innerText = visionOk ? "PASSED" : "FAILED";
+      visionBadge.className = visionOk ? "text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800" : "text-xs font-bold px-2 py-0.5 rounded bg-red-100 text-red-800";
+      document.getElementById("visionReason").innerText = visionOk
+        ? "✅ Road photo matches the contractor's claimed construction stage."
+        : "❌ Contractor claimed Finished Tar Road, but photo shows unpaved gravel/soil!";
+      document.getElementById("visionReason").className = visionOk ? "text-xs font-medium text-emerald-700" : "text-xs font-medium text-red-700";
 
-      claimOrder.unshift(newKey);
-      selectClaim(newKey);
-      btn.disabled = false;
-      setTimeout(() => {
-        document.getElementById("verdictBanner").scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 250);
-    }
+      // Update Check 3 UI
+      const fmt = n => "₹" + Math.round(n).toLocaleString("en-IN");
+      document.getElementById("outClaimedAmt").innerText = `${fmt(claimedTotal)} (${qty}T × ₹${rate.toLocaleString("en-IN")})`;
+      document.getElementById("outOvercharge").innerText = fmt(overcharge);
+      const billBadge = document.getElementById("billBadge");
+      billBadge.innerText = billOk ? "PASSED" : "OVERCHARGED";
+      billBadge.className = billOk ? "text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800" : "text-xs font-bold px-2 py-0.5 rounded bg-red-100 text-red-800";
+      document.getElementById("billReason").innerText = billOk
+        ? "✅ Rate and quantity are within official Government limits."
+        : `❌ Exceeds Govt limit (${rateExtra > 0 ? "Rate inflated " : ""}${qtyExtra > 0 ? "+ Extra quantity claimed" : ""}).`;
+      document.getElementById("billReason").className = billOk ? "text-xs font-medium text-emerald-700" : "text-xs font-medium text-red-700";
 
-    function renderClaimCards() {
-      const container = document.getElementById("claimCardsContainer");
-      const badgeEl = document.getElementById("casesCountBadge");
-      if (badgeEl) badgeEl.innerText = `${claimOrder.length} Cases`;
-      container.innerHTML = claimOrder.map(key => {
-        const item = CLAIMS_DATA[key];
-        const isSelected = key === activeKey;
+      // Update Verdict Banner
+      const vBox = document.getElementById("verdictBox");
+      const vBadge = document.getElementById("verdictBadge");
+      const vTitle = document.getElementById("verdictTitle");
+      const vDesc = document.getElementById("verdictDesc");
+      document.getElementById("riskText").innerText = `${risk} / 100`;
 
-        let statusClass = "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-900";
-        let dotColor = "bg-rose-500";
-        if (item.verdict === "APPROVED") {
-          statusClass = "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-900";
-          dotColor = "bg-emerald-500";
-        } else if (item.verdict === "VIGILANCE_HOLD") {
-          statusClass = "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-900";
-          dotColor = "bg-amber-500";
-        }
-
-        const borderStyle = isSelected
-          ? "border-blue-600 dark:border-blue-500 bg-blue-50/40 dark:bg-blue-950/30 ring-1 ring-blue-600/30"
-          : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700";
-
-        return `
-          <div onclick="selectClaim('${key}')" class="p-3 rounded-xl border ${borderStyle} cursor-pointer transition-all duration-150">
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="font-mono text-xs font-bold text-slate-800 dark:text-slate-200">${item.id}</span>
-              <span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${statusClass}">
-                <span class="w-1.5 h-1.5 rounded-full ${dotColor}"></span>
-                <span>${item.verdict}</span>
-              </span>
-            </div>
-            <p class="text-xs font-semibold text-slate-800 dark:text-slate-100 line-clamp-1">${item.project_name}</p>
-            <div class="flex items-center justify-between text-[11px] text-slate-500 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 font-mono">
-              <span>Claim: ${item.claimed_lakhs}</span>
-              <span class="font-bold ${item.verdict === 'APPROVED' ? 'text-emerald-600' : 'text-rose-600'}">${item.savings_tag}</span>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function selectClaim(key) {
-      activeKey = key;
-      activeClaim = CLAIMS_DATA[key];
-      renderClaimCards();
-      renderWorkspace();
-    }
-
-    function setTheme(mode) {
-      const html = document.documentElement;
-      const lightBtn = document.getElementById("themeLightBtn");
-      const darkBtn = document.getElementById("themeDarkBtn");
-
-      if (mode === 'dark') {
-        html.classList.add('dark');
-        darkBtn.classList.add('bg-white', 'text-slate-900', 'shadow-xs', 'dark:bg-slate-700', 'dark:text-white');
-        lightBtn.classList.remove('bg-white', 'text-slate-900', 'shadow-xs', 'dark:bg-slate-700', 'dark:text-white');
+      if (verdict === "APPROVED") {
+        vBox.className = "rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-950 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4";
+        vBadge.className = "inline-block text-xs font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-600 text-white mb-1";
+        vBadge.innerText = "APPROVED";
+        vTitle.innerText = "✅ Genuine Road Work Verified — Safe to Release Payment";
+        vDesc.innerText = `Photo GPS is ${dist.toFixed(1)}m from site, surface matches claim (${detectedText}), and bill matches Govt rate (${fmt(claimedTotal)}).`;
+      } else if (verdict === "HOLD") {
+        vBox.className = "rounded-xl border border-amber-300 bg-amber-50 text-amber-950 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4";
+        vBadge.className = "inline-block text-xs font-bold uppercase px-2.5 py-0.5 rounded-full bg-amber-600 text-white mb-1";
+        vBadge.innerText = "HOLD FOR REVIEW";
+        vTitle.innerText = "⚠️ Road Verified, But Bill Rate Exceeds Govt Rate";
+        vDesc.innerText = `Road surface and GPS passed, but contractor overcharged ${fmt(overcharge)} above the Government rate card.`;
       } else {
-        html.classList.remove('dark');
-        lightBtn.classList.add('bg-white', 'text-slate-900', 'shadow-xs', 'dark:bg-slate-700', 'dark:text-white');
-        darkBtn.classList.remove('bg-white', 'text-slate-900', 'shadow-xs', 'dark:bg-slate-700', 'dark:text-white');
+        vBox.className = "rounded-xl border border-red-300 bg-red-50 text-red-950 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4";
+        vBadge.className = "inline-block text-xs font-bold uppercase px-2.5 py-0.5 rounded-full bg-red-600 text-white mb-1";
+        vBadge.innerText = "REJECTED";
+        vTitle.innerText = "🚨 Fraud / Mismatch Detected — Payment Blocked!";
+        const issues = [];
+        if (!gpsOk) issues.push(`GPS is ${(dist / 1000).toFixed(1)} km away from site`);
+        if (!visionOk) issues.push(`Photo shows ${detectedText} instead of Finished Tar Road`);
+        if (!billOk) issues.push(`Bill overcharged by ${fmt(overcharge)}`);
+        vDesc.innerText = "Issues caught: " + issues.join(" • ") + ".";
       }
 
-      if (map) {
-        const mapContainer = document.getElementById("map");
-        if (mode === 'dark') {
-          mapContainer.classList.add("dark-map");
-        } else {
-          mapContainer.classList.remove("dark-map");
-        }
-      }
-    }
-
-    function switchTab(tabId) {
-      [1, 2, 3].forEach(id => {
-        const content = document.getElementById(`tabContent${id}`);
-        const btn = document.getElementById(`tabBtn${id}`);
-        if (id === tabId) {
-          content.classList.remove("hidden");
-          btn.className = "flex-1 py-2 px-3 rounded-lg font-semibold text-xs md:text-sm flex items-center justify-center space-x-2 transition-all bg-blue-600 text-white shadow-xs";
-        } else {
-          content.classList.add("hidden");
-          btn.className = "flex-1 py-2 px-3 rounded-lg font-semibold text-xs md:text-sm flex items-center justify-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-        }
-      });
-
-      if (tabId === 2 && map) {
-        setTimeout(() => map.invalidateSize(), 150);
-      }
-    }
-
-    function renderWorkspace() {
-      const c = activeClaim;
-
-      // Telemetry Cards
-      document.getElementById("metricBudget").innerText = c.budget_lakhs;
-      document.getElementById("metricTender").innerText = c.tender_id;
-      document.getElementById("metricSchemeTag").innerText = c.scheme;
-      document.getElementById("metricClaimed").innerText = c.claimed_lakhs;
-      document.getElementById("metricFlagged").innerText = c.flagged_lakhs;
-
-      const savEl = document.getElementById("metricSavingsTag");
-      savEl.innerText = c.savings_tag;
-      savEl.className = c.verdict === 'APPROVED' ? "text-[10px] font-medium text-emerald-600 dark:text-emerald-400 mt-1 block" : "text-[10px] font-medium text-rose-500 dark:text-rose-400 mt-1 block";
-
-      // Verdict Banner
-      const banner = document.getElementById("verdictBanner");
-      const badge = document.getElementById("verdictBadge");
-      const title = document.getElementById("verdictTitle");
-      const summary = document.getElementById("verdictSummary");
-      const risk = document.getElementById("verdictRisk");
-
-      risk.innerText = c.risk_score;
-      summary.innerText = c.summary;
-
-      if (c.verdict === "APPROVED") {
-        banner.className = "p-5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 bg-emerald-50/70 text-emerald-900 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-200 dark:border-emerald-900/60 shadow-xs";
-        badge.className = "px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-600 text-white font-mono";
-        badge.innerText = "APPROVED";
-        title.innerText = c.verdict_title;
-        risk.className = "text-2xl md:text-3xl font-extrabold font-mono text-emerald-700 dark:text-emerald-400 tabular-nums";
-      } else if (c.verdict === "VIGILANCE_HOLD") {
-        banner.className = "p-5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 bg-amber-50/70 text-amber-900 border-amber-200 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-900/60 shadow-xs";
-        badge.className = "px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-600 text-white font-mono";
-        badge.innerText = "HOLD";
-        title.innerText = c.verdict_title;
-        risk.className = "text-2xl md:text-3xl font-extrabold font-mono text-amber-700 dark:text-amber-400 tabular-nums";
-      } else {
-        banner.className = "p-5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 bg-rose-50/70 text-rose-900 border-rose-200 dark:bg-rose-950/30 dark:text-rose-200 dark:border-rose-900/60 shadow-xs";
-        badge.className = "px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-600 text-white font-mono";
-        badge.innerText = "REJECTED";
-        title.innerText = c.verdict_title;
-        risk.className = "text-2xl md:text-3xl font-extrabold font-mono text-rose-700 dark:text-rose-400 tabular-nums";
-      }
-
-      // Evidence Meta
-      document.getElementById("evidenceFilename").innerText = c.photo_filename;
-      document.getElementById("evidenceImage").src = c.image_src;
-      document.getElementById("evidenceTag").innerText = `Evidence Ref: ${c.id}`;
-      document.getElementById("infoProject").innerText = c.project_name;
-      document.getElementById("infoDept").innerText = c.department;
-      document.getElementById("infoContractor").innerText = c.contractor;
-      document.getElementById("infoMB").innerText = c.mb_ref;
-
-      // Forensic Specs
-      document.getElementById("forensicStage").innerText = c.stage_detected;
-      const geoEl = document.getElementById("forensicGeofence");
-      geoEl.innerText = c.geofence_status;
-      geoEl.className = c.geofence_verified ? "text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-1" : "text-xs font-bold text-rose-600 dark:text-rose-400 mt-1";
-
-      // Observations
-      const obsContainer = document.getElementById("observationsList");
-      obsContainer.innerHTML = c.observations.map(o => `
-        <li class="flex items-start space-x-2">
-          <i class="fa-solid fa-angle-right text-blue-500 mt-0.5 text-[10px]"></i>
-          <span class="leading-relaxed">${o}</span>
-        </li>
-      `).join("");
-
-      // Discrepancies
-      const discContainer = document.getElementById("discrepanciesContainer");
-      if (c.discrepancies.length === 0) {
-        discContainer.innerHTML = `
-          <div class="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-200 rounded-lg text-xs font-medium flex items-center space-x-2">
-            <i class="fa-solid fa-circle-check text-emerald-600"></i>
-            <span>All line items and physical parameters strictly adhere to sanction guidelines.</span>
-          </div>
-        `;
-      } else {
-        discContainer.innerHTML = c.discrepancies.map(d => `
-          <div class="p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-xs flex items-start justify-between gap-3">
-            <div class="space-y-0.5">
-              <div class="flex items-center space-x-1.5">
-                <span class="inline-block px-1.5 py-0.2 text-[9px] font-mono font-bold rounded uppercase ${d.sev === 'CRITICAL' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'}">${d.sev}</span>
-                <span class="text-[10px] font-mono text-slate-400 uppercase font-semibold">${d.cat}</span>
-              </div>
-              <p class="font-medium text-slate-800 dark:text-slate-200 leading-snug">${d.desc}</p>
-            </div>
-            <span class="font-mono font-bold text-rose-600 dark:text-rose-400 whitespace-nowrap text-right pt-1">${d.amt}</span>
-          </div>
-        `).join("");
-      }
-
-      document.getElementById("cryptoHash").innerText = `SHA256: ${c.crypto_hash}`;
-
-      // Coordinates
-      document.getElementById("mapTenderCoords").innerText = `${c.tender_lat.toFixed(4)}° N, ${c.tender_lng.toFixed(4)}° E`;
-      document.getElementById("mapPhotoCoords").innerText = `${c.photo_lat.toFixed(4)}° N, ${c.photo_lng.toFixed(4)}° E`;
-      document.getElementById("mapDistance").innerText = `${c.distance_meters} (Allowed: 500m)`;
-
-      // BOQ Table with Tabular Numerals
-      const boqBody = document.getElementById("boqTableBody");
-      boqBody.innerHTML = c.boq_items.map((i, idx) => {
-        let badgeClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300";
-        if (i.status === "OVERCHARGE") badgeClass = "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300";
-        if (i.status === "PHANTOM") badgeClass = "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300";
-
-        const rowBg = idx % 2 === 0 ? "bg-transparent" : "bg-slate-50/40 dark:bg-slate-800/20";
-
-        return `
-          <tr class="${rowBg} hover:bg-blue-50/30 dark:hover:bg-blue-950/20 transition-colors">
-            <td class="py-2.5 px-3.5 font-mono font-bold text-slate-800 dark:text-slate-200">${i.code}</td>
-            <td class="py-2.5 px-3.5 font-medium text-slate-700 dark:text-slate-300">${i.desc}</td>
-            <td class="py-2.5 px-3.5 text-right font-mono tabular-nums text-slate-600 dark:text-slate-400">${i.c_qty}</td>
-            <td class="py-2.5 px-3.5 text-right font-mono tabular-nums text-slate-600 dark:text-slate-400">${i.s_qty}</td>
-            <td class="py-2.5 px-3.5 text-right font-mono tabular-nums font-semibold text-slate-900 dark:text-white">${i.b_rate}</td>
-            <td class="py-2.5 px-3.5 text-right font-mono tabular-nums text-slate-600 dark:text-slate-400">${i.s_rate}</td>
-            <td class="py-2.5 px-3.5 text-right font-mono tabular-nums font-bold text-slate-900 dark:text-white">${i.total}</td>
-            <td class="py-2.5 px-3.5 text-center">
-              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold font-mono ${badgeClass}">${i.status}</span>
-            </td>
-          </tr>
-        `;
-      }).join("");
-
-      // Update Map
-      updateLeafletMap();
+      lastReport = { verdict, risk, dist, gpsOk, detectedText, visionOk, claimedTotal, overcharge, billOk, lat, lng, rate, qty };
+      updateMap(lat, lng, gpsOk, dist);
     }
 
     function initMap() {
-      map = L.map('map').setView([activeClaim.tender_lat, activeClaim.tender_lng], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      map = L.map("map").setView([SITE.lat, SITE.lng], 13);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
-        attribution: '&copy; OpenStreetMap'
+        attribution: "&copy; OpenStreetMap"
       }).addTo(map);
-      markersLayer = L.layerGroup().addTo(map);
+      mapLayer = L.layerGroup().addTo(map);
     }
 
-    function updateLeafletMap() {
+    function updateMap(photoLat, photoLng, gpsOk, dist) {
       if (!map) return;
-      markersLayer.clearLayers();
+      mapLayer.clearLayers();
+      const sitePt = [SITE.lat, SITE.lng];
+      const photoPt = [photoLat, photoLng];
 
-      const c = activeClaim;
-      const tenderLatLng = [c.tender_lat, c.tender_lng];
-      const photoLatLng = [c.photo_lat, c.photo_lng];
+      L.marker(sitePt).bindPopup(`<b>Approved Govt Road Site</b><br>${SITE.name}`).addTo(mapLayer);
+      L.circle(sitePt, { color: "#2563eb", fillColor: "#3b82f6", fillOpacity: 0.15, radius: SITE.radiusM })
+        .bindTooltip("500m Geofence Boundary").addTo(mapLayer);
 
-      // Tender Marker & Circle
-      L.marker(tenderLatLng, { title: "Sanctioned Site" })
-        .bindPopup(`<b>Sanctioned Tender Site</b><br>${c.project_name}`)
-        .addTo(markersLayer);
+      const color = gpsOk ? "#10b981" : "#ef4444";
+      L.circleMarker(photoPt, { color, fillColor: color, fillOpacity: 0.9, radius: 8 })
+        .bindPopup(`<b>Contractor Photo GPS</b><br>${dist.toFixed(1)}m from site`).addTo(mapLayer);
 
-      L.circle(tenderLatLng, {
-        color: '#2563eb',
-        fillColor: '#3b82f6',
-        fillOpacity: 0.15,
-        radius: 500
-      }).bindTooltip("Authorized Perimeter (500m)").addTo(markersLayer);
-
-      // Photo Marker
-      const photoColor = c.geofence_verified ? '#10b981' : '#ef4444';
-      L.circleMarker(photoLatLng, {
-        color: photoColor,
-        fillColor: photoColor,
-        fillOpacity: 0.9,
-        radius: 8
-      }).bindPopup(`<b>Evidence Location</b><br>${c.distance_meters} from tender site`).addTo(markersLayer);
-
-      // Connecting line
-      L.polyline([tenderLatLng, photoLatLng], {
-        color: photoColor,
-        weight: 2,
-        dashArray: '5, 8'
-      }).addTo(markersLayer);
-
-      const bounds = L.latLngBounds([tenderLatLng, photoLatLng]);
-      map.fitBounds(bounds, { padding: [40, 40] });
+      L.polyline([sitePt, photoPt], { color, weight: 2, dashArray: "5, 6" }).addTo(mapLayer);
+      map.fitBounds(L.latLngBounds([sitePt, photoPt]), { padding: [35, 35] });
     }
 
-    function downloadCertificate() {
-      const c = activeClaim;
+    function downloadPdfReport() {
+      if (!lastReport) return;
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
+      const r = lastReport;
 
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(15);
-      doc.setTextColor(15, 42, 74);
-      doc.text("GOVERNMENT OF INDIA", 105, 20, { align: "center" });
-
-      doc.setFontSize(9.5);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(70, 80, 95);
-      doc.text("STATE PUBLIC WORKS DEPARTMENT • DIRECTORATE OF DIGITAL VIGILANCE", 105, 26, { align: "center" });
-      doc.setFont("helvetica", "bold");
-      doc.text("NIRMAN-DRISHTI AUTONOMOUS FORENSIC INSPECTION CERTIFICATE", 105, 32, { align: "center" });
-
-      // Verdict box
-      if (c.verdict === "APPROVED") {
-        doc.setFillColor(27, 94, 32);
-      } else if (c.verdict === "VIGILANCE_HOLD") {
-        doc.setFillColor(230, 81, 0);
-      } else {
-        doc.setFillColor(183, 28, 28);
-      }
-      doc.rect(15, 38, 180, 10, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(11);
-      doc.text(`VERDICT: ${c.verdict} (Risk Score: ${c.risk_score})`, 105, 45, { align: "center" });
-
-      // Details
-      doc.setTextColor(20, 20, 20);
+      doc.setFontSize(16);
+      doc.text("NIRMAN-DRISHTI AUDIT REPORT", 105, 20, { align: "center" });
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
-      let y = 58;
+      doc.text("AI Road Construction Verification (Computer Vision + GPS Geofencing + Bill Check)", 105, 27, { align: "center" });
 
-      doc.text(`Audit ID: ${c.id}`, 20, y);
-      doc.text(`Tender: ${c.tender_id}`, 110, y);
-      y += 7;
-      doc.text(`Project: ${c.project_name.substring(0, 45)}...`, 20, y);
-      y += 7;
-      doc.text(`Department: ${c.department}`, 20, y);
-      doc.text(`Scheme: ${c.scheme}`, 110, y);
-      y += 7;
-      doc.text(`Contractor: ${c.contractor}`, 20, y);
-      doc.text(`MB Ref: ${c.mb_ref}`, 110, y);
-      y += 7;
-      doc.text(`Claimed: ${c.claimed_lakhs}`, 20, y);
-      doc.text(`Questioned: ${c.flagged_lakhs}`, 110, y);
-      y += 7;
-      doc.text(`Geofence: ${c.geofence_status}`, 20, y);
-      doc.text(`Stage: ${c.stage_detected}`, 110, y);
-
-      y += 14;
+      doc.setFillColor(r.verdict === "APPROVED" ? 22 : 185, r.verdict === "APPROVED" ? 163 : 28, r.verdict === "APPROVED" ? 74 : 28);
+      doc.rect(18, 34, 174, 11, "F");
+      doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
-      doc.text("EXECUTIVE RECOMMENDATION:", 20, y);
-      y += 6;
-      doc.setFont("helvetica", "normal");
-      const splitSummary = doc.splitTextToSize(c.summary, 170);
-      doc.text(splitSummary, 20, y);
+      doc.setFontSize(12);
+      doc.text(`FINAL VERDICT: ${r.verdict}  (Risk Score: ${r.risk}/100)`, 105, 41.5, { align: "center" });
 
-      y += (splitSummary.length * 6) + 12;
-      doc.setFont("helvetica", "bold");
-      doc.text("DIGITAL TAMPER-EVIDENT AUDIT SEAL (DPI / DEPA / DIGILOCKER):", 20, y);
-      y += 6;
-      doc.setFont("courier", "normal");
-      doc.setFontSize(8.5);
-      doc.text(`SHA256: ${c.crypto_hash}`, 20, y);
+      doc.setTextColor(20, 20, 20);
+      doc.setFontSize(11);
+      let y = 56;
+      const line = (label, val) => {
+        doc.setFont("helvetica", "bold"); doc.text(label, 20, y);
+        doc.setFont("helvetica", "normal"); doc.text(String(val), 82, y);
+        y += 8;
+      };
+      line("Project Name:", SITE.name);
+      line("Photo File:", currentFilename);
+      line("1. GPS Check:", `${r.gpsOk ? "PASSED" : "FAILED"} (${r.dist.toFixed(1)}m from site; limit 500m)`);
+      line("2. Vision Check:", `${r.visionOk ? "PASSED" : "FAILED"} (Detected: ${r.detectedText})`);
+      line("3. Bill Check:", `${r.billOk ? "PASSED" : "OVERCHARGED"} (Billed Rs. ${Math.round(r.claimedTotal).toLocaleString("en-IN")} vs Max Rs. 48,75,000)`);
+      line("Overcharged Amt:", `Rs. ${Math.round(r.overcharge).toLocaleString("en-IN")}`);
+      line("Audit Timestamp:", new Date().toLocaleString());
 
-      doc.save(`Audit_Certificate_${c.id}.pdf`);
+      doc.save(`Nirman_Drishti_Report_${r.verdict}.pdf`);
     }
 
-    // Initialize on load
-    window.addEventListener('DOMContentLoaded', () => {
-      setTheme('light');
+    window.addEventListener("DOMContentLoaded", () => {
       initMap();
-      renderClaimCards();
-      renderWorkspace();
+      loadDemo("fraud");
     });
   </script>
 </body>
