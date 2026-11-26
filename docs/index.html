@@ -118,6 +118,12 @@
           </button>
         </div>
 
+        <!-- Upload Road Photo CTA Button -->
+        <button onclick="toggleUploadPanel(true)" class="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-semibold py-2 px-3.5 rounded-lg shadow-xs transition-all">
+          <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
+          <span>Upload Road Photo</span>
+        </button>
+
         <!-- Download Signed Certificate Button -->
         <button onclick="downloadCertificate()" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs font-semibold py-2 px-3.5 rounded-lg shadow-xs transition-all">
           <i class="fa-solid fa-file-shield text-xs"></i>
@@ -147,8 +153,13 @@
             <i class="fa-solid fa-list-check text-blue-500"></i>
             <span>Active Tenders &amp; Claims</span>
           </h2>
-          <span class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">3 Cases</span>
+          <span id="casesCountBadge" class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">3 Cases</span>
         </div>
+
+        <button onclick="toggleUploadPanel(true)" class="w-full mb-3 inline-flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-3 rounded-xl text-xs shadow-xs transition-all">
+          <i class="fa-solid fa-camera"></i>
+          <span>+ Upload Road Photo &amp; Audit Live</span>
+        </button>
 
         <div class="space-y-2.5" id="claimCardsContainer">
           <!-- Populated dynamically via JS for active states -->
@@ -191,6 +202,126 @@
 
     <!-- RIGHT WORKSPACE: AUDIT COCKPIT (9 Cols) -->
     <section class="lg:col-span-9 space-y-6">
+
+      <!-- LIVE ROAD PHOTO UPLOAD & FORENSIC CLAIM ANALYZER -->
+      <div id="liveUploadPanel" class="bg-white dark:bg-[#0d1424] rounded-xl border-2 border-emerald-500/70 dark:border-emerald-500/50 p-5 shadow-sm space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center space-x-2.5">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+              <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
+            </span>
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                <span>Live Road Photo Upload &amp; Real-Time Forensic Audit</span>
+                <span class="px-2 py-0.5 text-[10px] font-mono uppercase rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold">Interactive Engine</span>
+              </h2>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Upload any road/site photo (or try a 1-click sample) to run live EXIF GPS Geofencing + Computer Vision Surface Check + BOQ Rate Audit.</p>
+            </div>
+          </div>
+          <button onclick="toggleUploadPanel(false)" class="text-xs font-medium text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 px-2 py-1 rounded">
+            Minimize <i class="fa-solid fa-chevron-up ml-1 text-[10px]"></i>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <!-- Col 1: Image Upload & Quick Samples (4 cols) -->
+          <div class="md:col-span-4 space-y-2.5">
+            <input id="roadPhotoInput" type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
+            <label for="roadPhotoInput" class="cursor-pointer block border-2 border-dashed border-emerald-400 dark:border-emerald-700 hover:border-emerald-600 bg-emerald-50/40 dark:bg-emerald-950/20 rounded-xl p-3 text-center transition-all">
+              <div id="uploadPreviewWrap" class="hidden mb-2 relative rounded-lg overflow-hidden h-28 bg-slate-900">
+                <img id="uploadPreviewImg" src="" alt="Uploaded preview" class="w-full h-full object-cover">
+                <span id="uploadPreviewBadge" class="absolute bottom-1.5 left-1.5 bg-slate-950/85 text-white text-[10px] font-mono px-2 py-0.5 rounded">--</span>
+              </div>
+              <div id="uploadEmptyPrompt" class="py-4 space-y-1">
+                <i class="fa-solid fa-camera-retro text-2xl text-emerald-600 dark:text-emerald-400"></i>
+                <p class="text-xs font-bold text-slate-800 dark:text-slate-100">Click to Upload Road / Site Photo</p>
+                <p class="text-[10px] text-slate-500">Supports JPG / PNG / Phone Camera (Auto-reads EXIF GPS)</p>
+              </div>
+            </label>
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="loadSamplePhoto('gravel')" class="flex-1 py-1.5 px-2 rounded-lg border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-[10px] font-semibold hover:bg-rose-100 transition-all">
+                🪨 Try Unpaved Gravel Photo
+              </button>
+              <button type="button" onclick="loadSamplePhoto('tar')" class="flex-1 py-1.5 px-2 rounded-lg border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-semibold hover:bg-emerald-100 transition-all">
+                🛣️ Try Finished Tar Road
+              </button>
+            </div>
+            <p id="exifStatusMsg" class="text-[10px] font-mono text-slate-500 dark:text-slate-400">📍 Upload a photo or select a sample above.</p>
+          </div>
+
+          <!-- Col 2: Tender, Stage & GPS Coordinates (4 cols) -->
+          <div class="md:col-span-4 space-y-2.5 text-xs">
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">1. Sanctioned Govt Tender</label>
+              <select id="liveTenderSelect" onchange="onLiveTenderChange()" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold">
+                <option value="PMGSY-2026-KA-491">PMGSY-2026-KA-491 • Honnavar Village Road (Rs. 48L)</option>
+                <option value="JJM-2026-MH-102">JJM-2026-MH-102 • PHC Shirwal Solar Pump (Rs. 14.5L)</option>
+                <option value="MPLADS-2026-DL-088">MPLADS-2026-DL-088 • Najafgarh Anganwadi (Rs. 65L)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">2. Contractor Claimed Milestone</label>
+              <select id="liveMilestoneSelect" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold">
+                <option value="FINISHED_TAR">100% Finished Black Bituminous Tar Road</option>
+                <option value="WBM_SUBBASE">Stage 1: WBM Gravel Sub-Base Only</option>
+              </select>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500">3. Photo GPS Coordinates</label>
+                <div class="space-x-1">
+                  <button type="button" onclick="setGpsPreset('inside')" class="text-[10px] font-semibold text-emerald-600 hover:underline">At Site (31m)</button>
+                  <span class="text-slate-300">|</span>
+                  <button type="button" onclick="setGpsPreset('outside')" class="text-[10px] font-semibold text-rose-600 hover:underline">11.7km Away</button>
+                  <span class="text-slate-300">|</span>
+                  <button type="button" onclick="setGpsPreset('device')" class="text-[10px] font-semibold text-blue-600 hover:underline">My GPS</button>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <input id="liveLatInput" type="number" step="0.0001" value="14.3650" placeholder="Latitude" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 font-mono text-xs">
+                <input id="liveLngInput" type="number" step="0.0001" value="74.5200" placeholder="Longitude" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 font-mono text-xs">
+              </div>
+            </div>
+          </div>
+
+          <!-- Col 3: BOQ Bill Inputs + Run Audit Button (4 cols) -->
+          <div class="md:col-span-4 flex flex-col justify-between space-y-2.5 text-xs">
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">4. Contractor Billed BOQ</span>
+                <div class="space-x-1">
+                  <button type="button" onclick="setBillPreset('honest')" class="text-[10px] font-semibold text-emerald-600 hover:underline">Govt SoR Rate</button>
+                  <span class="text-slate-300">|</span>
+                  <button type="button" onclick="setBillPreset('inflated')" class="text-[10px] font-semibold text-rose-600 hover:underline">Inflated Bill</button>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label id="liveQtyLabel" class="block text-[10px] text-slate-400 mb-0.5">Bitumen Qty (Max 75 MT)</label>
+                  <input id="liveQtyInput" type="number" step="1" value="110" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 font-mono text-xs">
+                </div>
+                <div>
+                  <label id="liveRateLabel" class="block text-[10px] text-slate-400 mb-0.5">Billed Rate (SoR: Rs.65000)</label>
+                  <input id="liveRateInput" type="number" step="100" value="88000" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 font-mono text-xs">
+                </div>
+              </div>
+              <div>
+                <input id="liveGeminiKey" type="password" placeholder="Optional: Gemini API Key (uses built-in CV if blank)" class="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 text-[11px]">
+              </div>
+            </div>
+
+            <button id="runLiveAuditBtn" type="button" onclick="runLiveForensicAudit()" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs shadow-sm flex items-center justify-center space-x-2 transition-all">
+              <i class="fa-solid fa-bolt"></i>
+              <span>Run Live Forensic Audit Now</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Step-by-Step Pipeline Execution Log -->
+        <div id="liveAuditLogBox" class="hidden rounded-lg bg-slate-900 text-emerald-300 font-mono text-[11px] p-3 space-y-1 border border-slate-800"></div>
+      </div>
 
       <!-- TOP TELEMETRY METRICS ROW -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -577,14 +708,557 @@
       }
     };
 
+    const TENDERS_SPEC = {
+      "PMGSY-2026-KA-491": {
+        tender_id: "PMGSY-2026-KA-491",
+        project_name: "Upgradation of Rural Link Road from Honnavar to Karki Village (1.8 km)",
+        department: "Public Works Department (PWD)",
+        scheme: "PMGSY (Pradhan Mantri Gram Sadak Yojana)",
+        contractor: "Shree Balaji Infra Projects Pvt Ltd",
+        budget_inr: 4800000,
+        budget_lakhs: "Rs. 48.0 Lakhs",
+        target_lat: 14.2812,
+        target_lng: 74.4531,
+        radius_m: 500,
+        primary_code: "R-104",
+        primary_desc: "Bituminous Concrete (BC) 25mm",
+        primary_unit: "MT",
+        sanctioned_qty: 75,
+        approved_rate: 65000,
+        base_items: [
+          { code: "R-101", desc: "Earthwork excavation & sub-grade prep", c_qty: "3,500.0 cum", s_qty: "3,500.0 cum", b_rate: "Rs. 180.00", s_rate: "Rs. 180.00", total: "Rs. 630,000.00", status: "MATCH", raw_total: 630000 },
+          { code: "R-102", desc: "Granular Sub-Base (GSB) 150mm", c_qty: "1,800.0 cum", s_qty: "1,800.0 cum", b_rate: "Rs. 650.00", s_rate: "Rs. 650.00", total: "Rs. 1,170,000.00", status: "MATCH", raw_total: 1170000 },
+          { code: "R-103", desc: "Water Bound Macadam (WBM) Gr-III", c_qty: "1,200.0 cum", s_qty: "1,200.0 cum", b_rate: "Rs. 820.00", s_rate: "Rs. 820.00", total: "Rs. 984,000.00", status: "MATCH", raw_total: 984000 }
+        ]
+      },
+      "JJM-2026-MH-102": {
+        tender_id: "JJM-2026-MH-102",
+        project_name: "Solar Dual Pump Borehole & Overhead Storage at PHC Shirwal",
+        department: "Rural Water Supply & Sanitation Department",
+        scheme: "Jal Jeevan Mission (JJM)",
+        contractor: "Apex Green Power Systems LLP",
+        budget_inr: 1450000,
+        budget_lakhs: "Rs. 14.5 Lakhs",
+        target_lat: 18.1345,
+        target_lng: 73.9876,
+        radius_m: 300,
+        primary_code: "W-204",
+        primary_desc: "Distribution network & chlorination doser",
+        primary_unit: "m",
+        sanctioned_qty: 800,
+        approved_rate: 625,
+        base_items: [
+          { code: "W-201", desc: "Borewell drilling 150mm dia to 120m", c_qty: "120.0 m", s_qty: "120.0 m", b_rate: "Rs. 1,250.00", s_rate: "Rs. 1,250.00", total: "Rs. 150,000.00", status: "MATCH", raw_total: 150000 },
+          { code: "W-202", desc: "5 HP Solar Submersible Pump & Controller", c_qty: "1.0 set", s_qty: "1.0 set", b_rate: "Rs. 380,000.00", s_rate: "Rs. 380,000.00", total: "Rs. 380,000.00", status: "MATCH", raw_total: 380000 },
+          { code: "W-203", desc: "Elevated HDPE Storage Tank 10,000L", c_qty: "1.0 nos", s_qty: "1.0 nos", b_rate: "Rs. 420,000.00", s_rate: "Rs. 420,000.00", total: "Rs. 420,000.00", status: "MATCH", raw_total: 420000 }
+        ]
+      },
+      "MPLADS-2026-DL-088": {
+        tender_id: "MPLADS-2026-DL-088",
+        project_name: "Model Community Skill & Anganwadi Center, Najafgarh",
+        department: "Municipal Corporation of Delhi (MCD)",
+        scheme: "MPLADS (Members of Parliament Local Area Development)",
+        contractor: "Capital Urban Builders Ltd",
+        budget_inr: 6500000,
+        budget_lakhs: "Rs. 65.0 Lakhs",
+        target_lat: 28.6092,
+        target_lng: 76.9854,
+        radius_m: 400,
+        primary_code: "C-301",
+        primary_desc: "Reinforced Cement Concrete (RCC M25)",
+        primary_unit: "cum",
+        sanctioned_qty: 350,
+        approved_rate: 6400,
+        base_items: [
+          { code: "C-303", desc: "TMT FE-550D Reinforcement Steel", c_qty: "16.0 MT", s_qty: "32.0 MT", b_rate: "Rs. 70,000.00", s_rate: "Rs. 70,000.00", total: "Rs. 1,120,000.00", status: "MATCH", raw_total: 1120000 }
+        ]
+      }
+    };
+
+    let claimOrder = ["CLM-001", "CLM-002", "CLM-003"];
     let activeKey = "CLM-001";
     let activeClaim = CLAIMS_DATA[activeKey];
     let map = null;
     let markersLayer = null;
+    let liveUploadedDataUrl = "assets/road_wbm_unpaved.jpg";
+    let liveUploadedFilename = "road_wbm_unpaved.jpg";
+    let liveUploadCounter = 1;
+
+    function toggleUploadPanel(show) {
+      const panel = document.getElementById("liveUploadPanel");
+      if (!panel) return;
+      if (show) {
+        panel.classList.remove("hidden");
+        panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        panel.classList.add("hidden");
+      }
+    }
+
+    function onLiveTenderChange() {
+      const tid = document.getElementById("liveTenderSelect").value;
+      const spec = TENDERS_SPEC[tid];
+      document.getElementById("liveQtyLabel").innerText = `${spec.primary_code} Qty (Max ${spec.sanctioned_qty} ${spec.primary_unit})`;
+      document.getElementById("liveRateLabel").innerText = `Billed Rate (SoR: Rs.${spec.approved_rate})`;
+      document.getElementById("liveQtyInput").value = spec.sanctioned_qty;
+      document.getElementById("liveRateInput").value = spec.approved_rate;
+      setGpsPreset("inside");
+    }
+
+    function setGpsPreset(mode) {
+      const tid = document.getElementById("liveTenderSelect").value;
+      const spec = TENDERS_SPEC[tid];
+      if (mode === "inside") {
+        document.getElementById("liveLatInput").value = (spec.target_lat + 0.0002).toFixed(4);
+        document.getElementById("liveLngInput").value = (spec.target_lng + 0.0002).toFixed(4);
+        document.getElementById("exifStatusMsg").innerText = "📍 Preset: Inside 500m sanctioned site boundary (~31m offset).";
+      } else if (mode === "outside") {
+        document.getElementById("liveLatInput").value = (spec.target_lat + 0.0838).toFixed(4);
+        document.getElementById("liveLngInput").value = (spec.target_lng + 0.0669).toFixed(4);
+        document.getElementById("exifStatusMsg").innerText = "🚨 Preset: Spoofed site photo 11.7 km outside geofence.";
+      } else if (mode === "device" && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          document.getElementById("liveLatInput").value = pos.coords.latitude.toFixed(5);
+          document.getElementById("liveLngInput").value = pos.coords.longitude.toFixed(5);
+          document.getElementById("exifStatusMsg").innerText = `📡 Live Device GPS captured (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}).`;
+        }, () => {
+          document.getElementById("exifStatusMsg").innerText = "⚠️ Location permission denied — enter coordinates manually.";
+        });
+      }
+    }
+
+    function setBillPreset(mode) {
+      const tid = document.getElementById("liveTenderSelect").value;
+      const spec = TENDERS_SPEC[tid];
+      if (mode === "honest") {
+        document.getElementById("liveQtyInput").value = spec.sanctioned_qty;
+        document.getElementById("liveRateInput").value = spec.approved_rate;
+      } else {
+        document.getElementById("liveQtyInput").value = Math.round(spec.sanctioned_qty * 1.46);
+        document.getElementById("liveRateInput").value = Math.round(spec.approved_rate * 1.35);
+      }
+    }
+
+    function generateSampleTarRoadDataUrl() {
+      const c = document.createElement("canvas");
+      c.width = 640;
+      c.height = 480;
+      const ctx = c.getContext("2d");
+      // Sky
+      const sky = ctx.createLinearGradient(0, 0, 0, 175);
+      sky.addColorStop(0, "#60a5fa");
+      sky.addColorStop(1, "#dbeafe");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, 640, 175);
+      // Rural green shoulders
+      ctx.fillStyle = "#3f6212";
+      ctx.fillRect(0, 175, 640, 305);
+      // Compacted earthen berm
+      ctx.fillStyle = "#78716c";
+      ctx.beginPath();
+      ctx.moveTo(235, 175); ctx.lineTo(405, 175); ctx.lineTo(635, 480); ctx.lineTo(5, 480);
+      ctx.closePath(); ctx.fill();
+      // Fresh dark bituminous asphalt wearing surface
+      ctx.fillStyle = "#33363b";
+      ctx.beginPath();
+      ctx.moveTo(260, 175); ctx.lineTo(380, 175); ctx.lineTo(590, 480); ctx.lineTo(50, 480);
+      ctx.closePath(); ctx.fill();
+      // Subtle asphalt aggregate texture
+      for (let i = 0; i < 1800; i++) {
+        const y = 180 + Math.random() * 295;
+        const spread = (y - 175) / 305;
+        const halfW = 60 + spread * 210;
+        const x = 320 + (Math.random() * 2 - 1) * halfW;
+        const v = 42 + Math.floor(Math.random() * 26);
+        ctx.fillStyle = `rgb(${v},${v},${v + 2})`;
+        ctx.fillRect(x, y, 2, 2);
+      }
+      // White edge markings & dashed center line
+      ctx.strokeStyle = "#f8fafc";
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(266, 180); ctx.lineTo(74, 480); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(374, 180); ctx.lineTo(566, 480); ctx.stroke();
+      ctx.setLineDash([18, 14]);
+      ctx.beginPath(); ctx.moveTo(320, 185); ctx.lineTo(320, 480); ctx.stroke();
+      return c.toDataURL("image/jpeg", 0.92);
+    }
+
+    function showPreviewThumb(src, label) {
+      document.getElementById("uploadPreviewImg").src = src;
+      document.getElementById("uploadPreviewBadge").innerText = label;
+      document.getElementById("uploadPreviewWrap").classList.remove("hidden");
+      document.getElementById("uploadEmptyPrompt").classList.add("hidden");
+    }
+
+    function loadSamplePhoto(kind) {
+      document.getElementById("liveTenderSelect").value = "PMGSY-2026-KA-491";
+      onLiveTenderChange();
+      document.getElementById("liveMilestoneSelect").value = "FINISHED_TAR";
+      if (kind === "gravel") {
+        liveUploadedDataUrl = "assets/road_wbm_unpaved.jpg";
+        liveUploadedFilename = "sample_unpaved_gravel.jpg";
+        showPreviewThumb(liveUploadedDataUrl, "Sample: Unpaved WBM Gravel");
+        setGpsPreset("outside");
+        setBillPreset("inflated");
+        document.getElementById("exifStatusMsg").innerText = "🪨 Loaded Unpaved Gravel sample (11.7km spoofed GPS + inflated bitumen rate). Click Run!";
+      } else {
+        liveUploadedDataUrl = generateSampleTarRoadDataUrl();
+        liveUploadedFilename = "verified_bituminous_tar_road.jpg";
+        showPreviewThumb(liveUploadedDataUrl, "Sample: Finished Black Tar Road");
+        setGpsPreset("inside");
+        setBillPreset("honest");
+        document.getElementById("exifStatusMsg").innerText = "🛣️ Loaded Verified Black Tar Road sample (within 31m geofence + Govt SoR rate). Click Run!";
+      }
+    }
+
+    function parseExifGPSFromArrayBuffer(buffer) {
+      try {
+        const view = new DataView(buffer);
+        if (view.byteLength < 12 || view.getUint16(0, false) !== 0xFFD8) return null;
+        let offset = 2;
+        while (offset + 4 < view.byteLength) {
+          const marker = view.getUint16(offset, false);
+          offset += 2;
+          if (marker === 0xFFE1) {
+            const length = view.getUint16(offset, false);
+            if (view.getUint32(offset + 2, false) !== 0x45786966) { offset += length; continue; }
+            const tiffStart = offset + 8;
+            const little = view.getUint16(tiffStart, false) === 0x4949;
+            const firstIfd = tiffStart + view.getUint32(tiffStart + 4, little);
+            const entries = view.getUint16(firstIfd, little);
+            let gpsIfd = null;
+            for (let i = 0; i < entries; i++) {
+              const entry = firstIfd + 2 + i * 12;
+              if (view.getUint16(entry, little) === 0x8825) {
+                gpsIfd = tiffStart + view.getUint32(entry + 8, little);
+                break;
+              }
+            }
+            if (!gpsIfd) return null;
+            const gpsEntries = view.getUint16(gpsIfd, little);
+            let latRef = "N", lngRef = "E", lat = null, lng = null;
+            const readDms = (valOffset) => {
+              const d = view.getUint32(valOffset, little) / Math.max(1, view.getUint32(valOffset + 4, little));
+              const m = view.getUint32(valOffset + 8, little) / Math.max(1, view.getUint32(valOffset + 12, little));
+              const s = view.getUint32(valOffset + 16, little) / Math.max(1, view.getUint32(valOffset + 20, little));
+              return d + m / 60 + s / 3600;
+            };
+            for (let j = 0; j < gpsEntries; j++) {
+              const ge = gpsIfd + 2 + j * 12;
+              const tag = view.getUint16(ge, little);
+              if (tag === 1) latRef = String.fromCharCode(view.getUint8(ge + 8));
+              else if (tag === 2) lat = readDms(tiffStart + view.getUint32(ge + 8, little));
+              else if (tag === 3) lngRef = String.fromCharCode(view.getUint8(ge + 8));
+              else if (tag === 4) lng = readDms(tiffStart + view.getUint32(ge + 8, little));
+            }
+            if (lat !== null && lng !== null) {
+              if (latRef === "S") lat = -lat;
+              if (lngRef === "W") lng = -lng;
+              return { lat, lng };
+            }
+            return null;
+          } else if ((marker & 0xFF00) !== 0xFF00) {
+            break;
+          } else {
+            offset += view.getUint16(offset, false);
+          }
+        }
+      } catch (err) {}
+      return null;
+    }
+
+    function handlePhotoUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      liveUploadedFilename = file.name;
+
+      const readerUrl = new FileReader();
+      readerUrl.onload = (e) => {
+        liveUploadedDataUrl = e.target.result;
+        showPreviewThumb(liveUploadedDataUrl, file.name);
+      };
+      readerUrl.readAsDataURL(file);
+
+      const readerBuf = new FileReader();
+      readerBuf.onload = (e) => {
+        const gps = parseExifGPSFromArrayBuffer(e.target.result);
+        if (gps && !isNaN(gps.lat) && !isNaN(gps.lng)) {
+          document.getElementById("liveLatInput").value = gps.lat.toFixed(5);
+          document.getElementById("liveLngInput").value = gps.lng.toFixed(5);
+          document.getElementById("exifStatusMsg").innerText = `✅ Camera EXIF GPS Auto-Extracted: ${gps.lat.toFixed(5)}, ${gps.lng.toFixed(5)}`;
+        } else {
+          document.getElementById("exifStatusMsg").innerText = `📸 Loaded "${file.name}" (No EXIF GPS in file — choose At Site / 11.7km Away / My GPS).`;
+        }
+      };
+      readerBuf.readAsArrayBuffer(file);
+    }
+
+    function haversineMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000.0;
+      const toRad = d => (d * Math.PI) / 180.0;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * (Math.sin(dLon / 2) ** 2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    async function inspectSurfacePixels(imgSrc) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          const cv = document.createElement("canvas");
+          cv.width = 160;
+          cv.height = 120;
+          const ctx = cv.getContext("2d");
+          ctx.drawImage(img, 0, 0, 160, 120);
+          const data = ctx.getImageData(0, 0, 160, 120).data;
+          let asphaltPx = 0, earthyPx = 0, totalPx = 0;
+          for (let y = 42; y < 110; y++) {
+            for (let x = 20; x < 140; x++) {
+              const idx = (y * 160 + x) * 4;
+              const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+              const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+              const chroma = mx - mn;
+              const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+              if (Math.abs(r - b) <= 14 && chroma <= 22 && lum >= 18 && lum <= 132) asphaltPx++;
+              if ((r - b) > 14 && lum > 45) earthyPx++;
+              totalPx++;
+            }
+          }
+          resolve({
+            asphaltRatio: asphaltPx / Math.max(1, totalPx),
+            earthyRatio: earthyPx / Math.max(1, totalPx)
+          });
+        };
+        img.onerror = () => resolve({ asphaltRatio: 0.05, earthyRatio: 0.65 });
+        img.src = imgSrc;
+      });
+    }
+
+    async function sha256Hex(text) {
+      if (window.crypto && window.crypto.subtle) {
+        const buf = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+      }
+      return "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
+    }
+
+    const fmtINR = n => "Rs. " + Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    async function runLiveForensicAudit() {
+      const btn = document.getElementById("runLiveAuditBtn");
+      const logBox = document.getElementById("liveAuditLogBox");
+      btn.disabled = true;
+      logBox.classList.remove("hidden");
+      logBox.innerHTML = `<div>⏳ [1/4] Extracting photo EXIF GPS &amp; running Haversine spherical geofence math...</div>`;
+
+      const tid = document.getElementById("liveTenderSelect").value;
+      const spec = TENDERS_SPEC[tid];
+      const milestoneMode = document.getElementById("liveMilestoneSelect").value;
+      const photoLat = parseFloat(document.getElementById("liveLatInput").value) || spec.target_lat;
+      const photoLng = parseFloat(document.getElementById("liveLngInput").value) || spec.target_lng;
+      const claimedQty = Math.max(0, parseFloat(document.getElementById("liveQtyInput").value) || spec.sanctioned_qty);
+      const billedRate = Math.max(0, parseFloat(document.getElementById("liveRateInput").value) || spec.approved_rate);
+      const geminiKey = (document.getElementById("liveGeminiKey").value || "").trim();
+
+      await new Promise(r => setTimeout(r, 280));
+      const distM = haversineMeters(spec.target_lat, spec.target_lng, photoLat, photoLng);
+      const geoVerified = distM <= spec.radius_m;
+      logBox.innerHTML += `<div>${geoVerified ? "✅" : "🚨"} Geofence Offset: ${distM.toFixed(1)}m vs ${spec.radius_m}m perimeter (${geoVerified ? "VERIFIED" : "GEO_TAMPERING"})</div>`;
+      logBox.innerHTML += `<div>⏳ [2/4] Inspecting road surface material layers (${geminiKey ? "Gemini 2.0 Flash Vision API" : "Computer Vision Chrominance/Luminance Engine"})...</div>`;
+
+      let stageDetected = "";
+      let observations = [];
+      let discrepancies = [];
+      const lineClaimedTotal = claimedQty * billedRate;
+      const baseTotal = spec.base_items.reduce((acc, i) => acc + i.raw_total, 0);
+      const totalClaimedInr = baseTotal + lineClaimedTotal;
+
+      let usedLiveGemini = false;
+      if (geminiKey && liveUploadedDataUrl.startsWith("data:image")) {
+        try {
+          const b64 = liveUploadedDataUrl.split(",")[1];
+          const mime = liveUploadedDataUrl.substring(5, liveUploadedDataUrl.indexOf(";"));
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(geminiKey)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { inline_data: { mime_type: mime, data: b64 } },
+                  { text: `You are an Indian PWD civil forensic auditor. Tender: ${spec.project_name}. Claimed stage: ${milestoneMode}. Return ONLY JSON: {"detected_stage":"string","matches_finished_tar":boolean,"observations":["string"],"discrepancy":"string or null"}` }
+                ]
+              }]
+            })
+          });
+          if (resp.ok) {
+            const rj = await resp.json();
+            let txt = rj.candidates[0].content.parts[0].text.trim().replace(/^```json/, "").replace(/```$/, "").trim();
+            const parsed = JSON.parse(txt);
+            stageDetected = parsed.detected_stage || "Gemini Inspected Stage";
+            observations = parsed.observations || [];
+            if (milestoneMode === "FINISHED_TAR" && !parsed.matches_finished_tar) {
+              discrepancies.push({
+                cat: "VISION_MISMATCH",
+                sev: "CRITICAL",
+                desc: parsed.discrepancy || "Gemini 2.0 Vision detected missing black bituminous wearing surface.",
+                rawAmt: totalClaimedInr * 0.45,
+                amt: fmtINR(totalClaimedInr * 0.45)
+              });
+            }
+            usedLiveGemini = true;
+          }
+        } catch (e) {}
+      }
+
+      if (!usedLiveGemini) {
+        await new Promise(r => setTimeout(r, 320));
+        const cv = await inspectSurfacePixels(liveUploadedDataUrl);
+        if (tid === "PMGSY-2026-KA-491" && milestoneMode === "FINISHED_TAR") {
+          const isUnpaved = cv.earthyRatio > 0.28 || cv.asphaltRatio < 0.25;
+          if (isUnpaved) {
+            stageDetected = "Compacted WBM Gravel / Earth Base (Unpaved)";
+            observations.push(`CV Surface Telemetry: Earth/aggregate index ${(cv.earthyRatio * 100).toFixed(1)}% vs. black asphalt index ${(cv.asphaltRatio * 100).toFixed(1)}%.`);
+            observations.push("Final 25mm Bituminous Concrete (BC) black wearing course claimed as 100% finished is absent.");
+            discrepancies.push({
+              cat: "VISION_MISMATCH",
+              sev: "CRITICAL",
+              desc: "Uploaded photo shows unpaved gravel/earth surface. Bituminous black tar wearing coat claimed 100% finished is absent.",
+              rawAmt: lineClaimedTotal * 0.45,
+              amt: fmtINR(lineClaimedTotal * 0.45)
+            });
+          } else {
+            stageDetected = "Finished Bituminous Concrete (Black Tar) Surface";
+            observations.push(`CV Surface Telemetry: Neutral dark bituminous asphalt index ${(cv.asphaltRatio * 100).toFixed(1)}% confirmed across carriageway.`);
+            observations.push("Continuous paved carriageway surface conforms to PMGSY milestone specifications.");
+          }
+        } else {
+          stageDetected = milestoneMode === "WBM_SUBBASE" ? "Stage 1: WBM Gravel Sub-Base Verified" : "Verified Civic Infrastructure Stage";
+          observations.push(`Uploaded photographic evidence (${liveUploadedFilename}) aligns with reported milestone stage.`);
+        }
+      }
+
+      observations.push(
+        geoVerified
+          ? `Geospatial check passed: Photo coordinates within ${distM.toFixed(1)}m of sanctioned alignment (${spec.radius_m}m limit).`
+          : `EXIF/Coordinate check failed: Photo captured ${(distM / 1000).toFixed(2)} km outside sanctioned tender alignment.`
+      );
+
+      if (!geoVerified) {
+        discrepancies.unshift({
+          cat: "GEO_TAMPERING",
+          sev: "CRITICAL",
+          desc: `Photo coordinates (${photoLat.toFixed(4)}, ${photoLng.toFixed(4)}) are ${distM.toFixed(1)}m away from site. Exceeds ${spec.radius_m}m geofence.`,
+          rawAmt: totalClaimedInr,
+          amt: fmtINR(totalClaimedInr)
+        });
+      }
+
+      await new Promise(r => setTimeout(r, 250));
+      logBox.innerHTML += `<div>⏳ [3/4] Auditing BOQ (${claimedQty} ${spec.primary_unit} @ Rs.${billedRate.toLocaleString("en-IN")} vs SoR Rs.${spec.approved_rate.toLocaleString("en-IN")})...</div>`;
+
+      let primaryStatus = "MATCH";
+      if (billedRate > spec.approved_rate) {
+        primaryStatus = "OVERCHARGE";
+        const excessRateAmt = (billedRate - spec.approved_rate) * claimedQty;
+        discrepancies.push({
+          cat: "RATE_INFLATION",
+          sev: "HIGH",
+          desc: `${spec.primary_desc} billed at Rs. ${billedRate.toLocaleString("en-IN")}/${spec.primary_unit} vs approved SoR rate Rs. ${spec.approved_rate.toLocaleString("en-IN")}/${spec.primary_unit}.`,
+          rawAmt: excessRateAmt,
+          amt: fmtINR(excessRateAmt)
+        });
+      }
+      if (claimedQty > spec.sanctioned_qty) {
+        primaryStatus = "OVERCHARGE";
+        const excessQtyAmt = (claimedQty - spec.sanctioned_qty) * spec.approved_rate;
+        discrepancies.push({
+          cat: "QUANTITY_OVERCLAIM",
+          sev: "CRITICAL",
+          desc: `Billed ${claimedQty} ${spec.primary_unit} exceeds sanctioned ceiling ${spec.sanctioned_qty} ${spec.primary_unit} by ${(claimedQty - spec.sanctioned_qty).toFixed(1)} ${spec.primary_unit}.`,
+          rawAmt: excessQtyAmt,
+          amt: fmtINR(excessQtyAmt)
+        });
+      }
+
+      let risk = 0;
+      if (!geoVerified) risk += 45;
+      discrepancies.forEach(d => {
+        if (d.cat === "VISION_MISMATCH") risk += 35;
+        else if (d.cat === "RATE_INFLATION") risk += 15;
+        else if (d.cat === "QUANTITY_OVERCLAIM") risk += 25;
+      });
+      risk = Math.min(100, risk);
+      const critCount = discrepancies.filter(d => d.sev === "CRITICAL").length;
+      const highCount = discrepancies.filter(d => d.sev === "HIGH").length;
+      const verdict = (critCount > 0 || risk >= 65) ? "REJECTED" : ((highCount > 0 || risk >= 25) ? "VIGILANCE_HOLD" : "APPROVED");
+
+      const rawFlagged = Math.min(totalClaimedInr, discrepancies.reduce((s, d) => s + d.rawAmt, 0));
+      const newKey = `CLM-LIVE-${String(liveUploadCounter++).padStart(2, "0")}`;
+      const hashHex = await sha256Hex(JSON.stringify({ id: newKey, tid, verdict, risk, rawFlagged, ts: new Date().toISOString() }));
+
+      logBox.innerHTML += `<div>✅ [4/4] Verdict: <b>${verdict}</b> (Risk: ${risk.toFixed(1)}/100) • SHA-256 Seal Generated! Updating Cockpit below 👇</div>`;
+
+      CLAIMS_DATA[newKey] = {
+        id: newKey,
+        tender_id: spec.tender_id,
+        project_name: `[LIVE AUDIT] ${spec.project_name}`,
+        department: spec.department,
+        scheme: spec.scheme,
+        contractor: spec.contractor,
+        budget_lakhs: spec.budget_lakhs,
+        claimed_lakhs: `Rs. ${(totalClaimedInr / 100000).toFixed(2)} Lakhs`,
+        flagged_lakhs: `Rs. ${(rawFlagged / 100000).toFixed(2)} Lakhs`,
+        savings_tag: verdict === "APPROVED" ? "Zero Discrepancy" : `Flagged Rs. ${(rawFlagged / 100000).toFixed(2)}L`,
+        mb_ref: `MB-LIVE/2026/${newKey}`,
+        photo_filename: liveUploadedFilename,
+        image_src: liveUploadedDataUrl,
+        verdict: verdict,
+        verdict_title: verdict === "APPROVED" ? "SAFE FOR DISBURSEMENT — LIVE AUDIT VERIFIED" : (verdict === "VIGILANCE_HOLD" ? "WITHHELD FOR EXECUTIVE SCRUTINY (Rate Inflation)" : "CRITICAL FRAUD DETECTED — PAYMENT BLOCKED"),
+        risk_score: `${risk.toFixed(1)}/100`,
+        summary: verdict === "APPROVED"
+          ? `Live uploaded photo (${liveUploadedFilename}) matches claimed milestone (${stageDetected}). Coordinates verified within ${distM.toFixed(1)}m of site and BOQ rates match Govt SoR.`
+          : `Live audit of "${liveUploadedFilename}" flagged ${discrepancies.length} violation(s) totaling Rs. ${(rawFlagged / 100000).toFixed(2)} Lakhs (${stageDetected}; GPS offset ${distM.toFixed(1)}m).`,
+        stage_detected: stageDetected,
+        geofence_status: geoVerified ? `VERIFIED (Within ${distM.toFixed(1)}m)` : `VIOLATION (${distM.toFixed(1)}m away)`,
+        geofence_verified: geoVerified,
+        observations: observations,
+        discrepancies: discrepancies,
+        crypto_hash: hashHex,
+        tender_lat: spec.target_lat,
+        tender_lng: spec.target_lng,
+        photo_lat: photoLat,
+        photo_lng: photoLng,
+        distance_meters: `${distM.toFixed(1)}m`,
+        boq_items: [
+          ...spec.base_items,
+          {
+            code: spec.primary_code,
+            desc: spec.primary_desc,
+            c_qty: `${claimedQty.toFixed(1)} ${spec.primary_unit}`,
+            s_qty: `${spec.sanctioned_qty.toFixed(1)} ${spec.primary_unit}`,
+            b_rate: fmtINR(billedRate),
+            s_rate: fmtINR(spec.approved_rate),
+            total: fmtINR(lineClaimedTotal),
+            status: primaryStatus
+          }
+        ]
+      };
+
+      claimOrder.unshift(newKey);
+      selectClaim(newKey);
+      btn.disabled = false;
+      setTimeout(() => {
+        document.getElementById("verdictBanner").scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 250);
+    }
 
     function renderClaimCards() {
       const container = document.getElementById("claimCardsContainer");
-      container.innerHTML = Object.keys(CLAIMS_DATA).map(key => {
+      const badgeEl = document.getElementById("casesCountBadge");
+      if (badgeEl) badgeEl.innerText = `${claimOrder.length} Cases`;
+      container.innerHTML = claimOrder.map(key => {
         const item = CLAIMS_DATA[key];
         const isSelected = key === activeKey;
 

@@ -189,8 +189,62 @@ def audit_vision_and_geospatial(
         except Exception as e:
             observations.append(f"Gemini live inference note: {str(e)[:120]}. Using forensic rule engine.")
 
-    # 3. Deterministic Local Heuristic / Demo Fallback
-    # In test/demo mode when offline: evaluate based on claim properties
+    # 3. Deterministic Local Computer Vision & Heuristic Engine (Offline / Keyless Mode)
+    # Inspect actual road surface pixels when custom site photo is uploaded
+    if image_path and os.path.exists(image_path) and (
+        "ASPHALT" in claim.milestone_name.upper()
+        or "SURFACE" in claim.milestone_name.upper()
+        or "TAR" in claim.milestone_name.upper()
+        or "BITUMEN" in claim.milestone_name.upper()
+    ):
+        try:
+            with Image.open(image_path) as img:
+                rgb = img.convert("RGB").resize((160, 120))
+                pixels = rgb.load()
+                asphalt_px = 0
+                earthy_px = 0
+                total_px = 0
+                for y in range(42, 110):
+                    for x in range(20, 140):
+                        r, g, b = pixels[x, y]
+                        mx = max(r, g, b)
+                        mn = min(r, g, b)
+                        chroma = mx - mn
+                        lum = 0.299 * r + 0.587 * g + 0.114 * b
+                        if abs(r - b) <= 14 and chroma <= 22 and 18 <= lum <= 132:
+                            asphalt_px += 1
+                        if (r - b) > 14 and lum > 45:
+                            earthy_px += 1
+                        total_px += 1
+                asphalt_ratio = asphalt_px / max(1, total_px)
+                earthy_ratio = earthy_px / max(1, total_px)
+
+                if earthy_ratio > 0.28 or asphalt_ratio < 0.25:
+                    stage_detected = "Unfinished WBM Gravel / Earth Base (Missing Black Tar Coat)"
+                    observations.append(
+                        f"CV Surface Telemetry: Unpaved aggregate/soil index {earthy_ratio*100:.1f}% vs. asphalt index {asphalt_ratio*100:.1f}%."
+                    )
+                    observations.append("Final 25mm Bituminous Concrete (BC) black wearing course is physically absent.")
+                    discrepancies.append(
+                        Discrepancy(
+                            category="VISION_MISMATCH",
+                            severity="CRITICAL",
+                            description=(
+                                "Photographic evidence shows unpaved gravel/earth sub-base. "
+                                "Final Bituminous Concrete (BC) wearing coat claimed as complete is physically absent."
+                            ),
+                            financial_impact_inr=round(claim.claimed_amount_inr * 0.45, 2),
+                        )
+                    )
+                else:
+                    stage_detected = "Finished Bituminous Concrete (Black Tar) Surface"
+                    observations.append(
+                        f"CV Surface Telemetry: Neutral dark bituminous asphalt index {asphalt_ratio*100:.1f}% confirmed across carriageway."
+                    )
+                return geo_verified, distance, stage_detected, observations, discrepancies
+        except Exception:
+            pass
+
     if claim.claimed_completion_pct > 80 and "WBM" in claim.milestone_name.upper():
         stage_detected = "Water Bound Macadam (WBM Gravel Base)"
         observations.append("Visual inspection confirms coarse aggregate WBM layer compacted.")

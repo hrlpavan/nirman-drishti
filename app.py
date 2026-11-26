@@ -11,8 +11,11 @@ import folium
 from streamlit_folium import st_folium
 from PIL import Image
 
-from core.models import ProjectTender, ContractorClaim
+from datetime import date
+import tempfile
+from core.models import ProjectTender, ContractorClaim, ClaimItem
 from core.audit_engine import NirmanAuditEngine
+from core.vision_auditor import extract_exif_metadata
 from core.cert_generator import generate_pdf_certificate
 
 # Set page configuration
@@ -278,27 +281,118 @@ with st.sidebar:
         st.info("Operating in Autonomous Rule & Forensic Verification Mode.")
 
     st.markdown("---")
-    st.markdown("### 📋 Quick Claim Selector")
-    claim_labels = {
-        c.claim_id: f"{c.claim_id} ({c.tender_id}) - {c.milestone_name[:30]}..."
-        for c in claims_list
-    }
-    selected_claim_id = st.selectbox(
-        "Choose Claim to Audit:",
-        options=list(claim_labels.keys()),
-        format_func=lambda x: claim_labels[x],
-        index=0
+    st.markdown("### 📸 Audit Input Mode")
+    audit_mode = st.radio(
+        "Select Input Source:",
+        options=["📤 Upload Road Photo (Live Audit)", "📋 Pre-Loaded Claims (3 Cases)"],
+        index=0,
     )
+
+    selected_claim = None
+    selected_tender = None
+    image_path = None
+
+    if audit_mode == "📋 Pre-Loaded Claims (3 Cases)":
+        claim_labels = {
+            c.claim_id: f"{c.claim_id} ({c.tender_id}) - {c.milestone_name[:30]}..."
+            for c in claims_list
+        }
+        selected_claim_id = st.selectbox(
+            "Choose Claim to Audit:",
+            options=list(claim_labels.keys()),
+            format_func=lambda x: claim_labels[x],
+            index=0
+        )
+        selected_claim = next(c for c in claims_list if c.claim_id == selected_claim_id)
+        selected_tender = tender_dict[selected_claim.tender_id]
+        image_path = os.path.join("data/sample_images", selected_claim.photo_filename) if selected_claim.photo_filename else None
+    else:
+        tender_options = {t.tender_id: f"{t.tender_id} — {t.project_name[:32]}..." for t in tenders_list}
+        chosen_tid = st.selectbox("1. Sanctioned Tender", options=list(tender_options.keys()), format_func=lambda k: tender_options[k])
+        selected_tender = tender_dict[chosen_tid]
+        primary_item = selected_tender.boq_items[-1]
+
+        uploaded_photo = st.file_uploader("2. Upload Road / Site Photo (JPG/PNG)", type=["jpg", "jpeg", "png", "webp"])
+        default_lat = round(selected_tender.target_lat + 0.0002, 4)
+        default_lng = round(selected_tender.target_lng + 0.0002, 4)
+
+        if uploaded_photo is not None:
+            suffix = os.path.splitext(uploaded_photo.name)[-1] or ".jpg"
+            tmp_file = os.path.join(tempfile.gettempdir(), f"nirman_live_upload{suffix}")
+            with open(tmp_file, "wb") as out_f:
+                out_f.write(uploaded_photo.getbuffer())
+            image_path = tmp_file
+            exif_info = extract_exif_metadata(image_path)
+            if exif_info["lat"] is not None and exif_info["lng"] is not None:
+                default_lat = round(exif_info["lat"], 5)
+                default_lng = round(exif_info["lng"], 5)
+                st.success(f"📍 Auto-extracted EXIF GPS: {default_lat}, {default_lng}")
+            else:
+                st.caption("ℹ️ No camera EXIF GPS in uploaded image — adjust or test GPS below.")
+        else:
+            image_path = "data/sample_images/road_wbm_unpaved.jpg"
+            st.caption("Using default sample road image until you upload a photo above.")
+
+        milestone_choice = st.selectbox(
+            "3. Claimed Construction Stage",
+            options=[
+                "100% Finished Bituminous Concrete Asphalt Surface",
+                "Stage 1: Compacted WBM Gravel Sub-Base",
+            ],
+        )
+        gps_preset = st.radio(
+            "4. GPS Location Test",
+            options=["Custom / EXIF Coordinates", "Inside Site Geofence (~30m)", "Spoofed Photo (11.7 km Away)"],
+            index=2 if uploaded_photo is None else 0,
+        )
+        if gps_preset == "Inside Site Geofence (~30m)":
+            claim_lat = round(selected_tender.target_lat + 0.0002, 5)
+            claim_lng = round(selected_tender.target_lng + 0.0002, 5)
+        elif gps_preset == "Spoofed Photo (11.7 km Away)":
+            claim_lat = round(selected_tender.target_lat + 0.0838, 5)
+            claim_lng = round(selected_tender.target_lng + 0.0669, 5)
+        else:
+            claim_lat = st.number_input("Photo Latitude", value=float(default_lat), format="%.5f")
+            claim_lng = st.number_input("Photo Longitude", value=float(default_lng), format="%.5f")
+
+        claimed_qty = st.number_input(
+            f"5. Claimed {primary_item.item_code} Qty (Approved: {primary_item.tendered_qty} {primary_item.unit})",
+            min_value=1.0,
+            value=float(primary_item.tendered_qty * 1.4) if uploaded_photo is None else float(primary_item.tendered_qty),
+        )
+        claimed_rate = st.number_input(
+            f"6. Billed Rate ₹/{primary_item.unit} (Govt SoR: ₹{primary_item.approved_rate_inr:,.0f})",
+            min_value=1.0,
+            value=float(primary_item.approved_rate_inr * 1.35) if uploaded_photo is None else float(primary_item.approved_rate_inr),
+        )
+        line_total = round(claimed_qty * claimed_rate, 2)
+        selected_claim = ContractorClaim(
+            claim_id="CLM-LIVE-UPLOAD",
+            tender_id=selected_tender.tender_id,
+            milestone_name=milestone_choice,
+            claimed_completion_pct=100.0 if "100%" in milestone_choice else 60.0,
+            claimed_amount_inr=line_total,
+            claim_date=str(date.today()),
+            photo_lat=claim_lat,
+            photo_lng=claim_lng,
+            photo_filename=uploaded_photo.name if uploaded_photo else "road_wbm_unpaved.jpg",
+            measurement_book_ref="MB-LIVE/2026/UPLOAD-01",
+            claimed_items=[
+                ClaimItem(
+                    item_code=primary_item.item_code,
+                    description=primary_item.description,
+                    claimed_qty=claimed_qty,
+                    claimed_unit_rate_inr=claimed_rate,
+                    total_claimed_amount_inr=line_total,
+                )
+            ],
+        )
 
     st.markdown("---")
     st.caption("Built for **Code for Communities 2.0** (Google Cloud & GDG)")
 
 # Inject active theme stylesheet using st.html (never renders raw markdown or code block)
 st.html(get_theme_css(theme_mode))
-
-selected_claim = next(c for c in claims_list if c.claim_id == selected_claim_id)
-selected_tender = tender_dict[selected_claim.tender_id]
-image_path = os.path.join("data/sample_images", selected_claim.photo_filename) if selected_claim.photo_filename else None
 
 # Header Banner
 st.markdown('<div class="main-header">🏛️ Nirman-Drishti (निर्माण-दृष्टि)</div>', unsafe_allow_html=True)
